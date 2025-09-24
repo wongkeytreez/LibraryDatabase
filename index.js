@@ -1,11 +1,11 @@
 const fps=2;
 const ImagesPerReccording=5;
 let password="sigma";
-async function getLibraryContents(LibraryID) {
+async function getLibraryContents(libName) {
   const res = await fetch(serverLink + "/LibraryContents", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ID: LibraryID })
+    body: JSON.stringify({ name: libName })
   });
 
   const contentType = res.headers.get("Content-Type");
