@@ -108,11 +108,12 @@ function Start2() {
 }
 
 // Show library contents (uses getLibraryContents already in your client)
-async function Start3(libraryID, Password) {
-  libID=libraryID;
+async function Start3(libName, Password) {
+  libName=libName;
 password=Password;
-  if (!libID) return Start2();
-
+  if (!libName) return Start2();
+if(server)if(!await checkPassword(libName,password)) return Start2();
+console.log(libName,password,checkPassword(libName,password))
   document.getElementById("screen").innerHTML = ""; // clear while loading
   const loading = document.createElement("div");
   loading.textContent = "Loading...";
@@ -121,7 +122,7 @@ password=Password;
   document.getElementById("screen").appendChild(loading);
 
   try {
-    ListOfBooks = await getLibraryContents(libID); // your existing function
+    ListOfBooks = await getLibraryContents(libName); // your existing function
     if (!ListOfBooks || !ListOfBooks.metadata) {
       throw new Error("No library data");
     }

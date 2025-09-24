@@ -1,6 +1,16 @@
 const fps=2;
 const ImagesPerReccording=5;
 let password="sigma";
+async function checkPassword(name, password) {
+  const res = await fetch(serverLink + "/checkPassword", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name:name, password:password })
+  });
+
+  return await res.json(); // <-- gives you true/false
+}
+
 async function getLibraryContents(libName) {
   const res = await fetch(serverLink + "/LibraryContents", {
     method: "POST",
@@ -8,7 +18,15 @@ async function getLibraryContents(libName) {
     body: JSON.stringify({ name: libName })
   });
 
-  const contentType = res.headers.get("Content-Type");
+  const contentType = res.headers.get("Content-Type") || "";
+
+  // If server responded with JSON → probably an error
+  if (contentType.includes("application/json")) {
+    const err = await res.json();
+    throw new Error(err.error || "Unknown server error");
+  }
+
+  // Otherwise continue with multipart parsing
   const boundaryMatch = contentType.match(/boundary=(.*)$/);
   if (!boundaryMatch) throw new Error("Boundary not found");
   const boundaryStr = boundaryMatch[1];
