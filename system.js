@@ -1,30 +1,42 @@
-let videoStream;
+
 let server=null;
 // Initialize camera
+let videoStream = null;
+let stream = null;
+
 async function initCamera() {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  videoStream = document.createElement("video");
-  videoStream.srcObject = stream;
-  videoStream.playsInline = true; // iOS Safari fix
-  await videoStream.play();
+  if (!stream) {
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    videoStream = document.createElement("video");
+    videoStream.srcObject = stream;
+    videoStream.playsInline = true; // iOS Safari fix
+    await videoStream.play();
+    videoStream.pause(); // immediately pause to save power
+  }
 }
 
 // Capture frame as ImageData
-function captureFrame() {
+async function captureFrame() {
   if (!videoStream) {
-    console.error("Camera not initialized!");
-    return null;
+    await initCamera();
   }
+
+  // resume just for capture
+  videoStream.play();
+  await new Promise(r => videoStream.onplaying = r);
 
   const canvas = document.createElement("canvas");
   canvas.width = videoStream.videoWidth;
   canvas.height = videoStream.videoHeight;
 
-  const ctx = canvas.getContext("2d", { willReadFrequently: true }); 
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
   ctx.drawImage(videoStream, 0, 0);
+
+  videoStream.pause(); // pause again after capture
 
   return ctx.getImageData(0, 0, canvas.width, canvas.height);
 }
+
 
 // Show the frame on screen (for debugging)
 function showImage(imageData, containerId) {

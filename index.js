@@ -209,14 +209,15 @@ function SetUpBorrow(lib,book){
     BorrowData={lib:lib,book:book}
 }
 
-const ImagesList=[]
-let BorrowData=null; //when someone wants to borrow, it counts down how many frames left until the system borrows
-//initCamera().then(()=>
+//when someone wants to borrow, it counts down how many frames left until the system borrows
+async function runCamera(){
+    const ImagesList=[]
+let BorrowData=null; 
 setInterval(async () => {
-    ImagesList.push( null);//captureFrame());
+    ImagesList.push( captureFrame());
     
-    //if(ImagesList.length>Math.ceil(ImagesPerReccording/2)&&BorrowData==null)ImagesList.splice(0,1);
-    //showImage(ImagesList[ImagesList.length-1],"hello")
+    if(ImagesList.length>Math.ceil(ImagesPerReccording/2)&&BorrowData==null)ImagesList.splice(0,1);
+    showImage(ImagesList[ImagesList.length-1],"hello")
    
     if(BorrowData!=null)if(ImagesList.length==ImagesPerReccording){
       
@@ -224,4 +225,4 @@ setInterval(async () => {
     }
     
 }, 1000/fps)
-//)
+}

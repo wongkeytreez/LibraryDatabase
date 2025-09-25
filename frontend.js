@@ -122,10 +122,12 @@ console.log(libName,password,checkPassword(libName,password))
   document.getElementById("screen").appendChild(loading);
 
   try {
-    ListOfBooks = await getLibraryContents(libName); // your existing function
+    ListOfBooks = await getLibraryContents(libName);
+     // your existing function
     if (!ListOfBooks || !ListOfBooks.metadata) {
       throw new Error("No library data");
     }
+    libID=ListOfBooks.metadata.id
   } catch (e) {
     console.error(e);
     return Start2();
@@ -147,6 +149,10 @@ if (server) {
     offBtn.style.opacity = "1";
     console.log("Signal: RETURN");
   }
+
+initCamera().then(()=>{
+runCamera();
+})
 }
 
 // expose function globally
