@@ -121,6 +121,7 @@ console.log(libName,password,checkPassword(libName,password))
   loading.style.margin = "20px";
   document.getElementById("screen").appendChild(loading);
 async function reloadLibrary(){
+  
   try {
     ListOfBooks = await getLibraryContents(libName);
      // your existing function
@@ -172,6 +173,7 @@ takePicBtn.textContent = "Take a picture";
 let wrapper;
 takePicBtn.onclick = async() => {
   // For now just show placeholder
+  preview.innerHTML="";
    wrapper= createManualCropper(preview,ImagesList[ImagesList.length-1]);
   
 //showImage(await cropForeground(ImagesList[ImagesList.length-1]),preview);
@@ -197,7 +199,8 @@ submitBtn.onclick = async () => {
   console.log(bookCover)
   console.log({ bookId, bookName,bookCover });
   addNewBook(libID,bookId,bookName,bookCover);
-reloadLibrary();
+showLibrary();
+
 };
 questions.appendChild(submitBtn);
 }
@@ -246,7 +249,8 @@ window.setToggle = setToggle;
 
 
 
-function showLibrary() {
+async function showLibrary() {
+  await reloadLibrary();
   // create gallery container
   document.getElementById("screen").innerHTML = "";
   const gallery = document.createElement("div");
@@ -479,8 +483,8 @@ card.appendChild(meta);
   backBtn.textContent = "Back";
   backBtn.onclick = async() => {
     cleanup();
-    await reloadLibrary();
     showLibrary();
+
   };
   actions.appendChild(backBtn);
 

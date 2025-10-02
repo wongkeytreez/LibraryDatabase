@@ -10,6 +10,23 @@ async function checkPassword(name, password) {
 
   return await res.json(); // <-- gives you true/false
 }
+async function addNewBook(LibID, BookID, BookTitle, coverBlob ) {
+  const formData = new FormData();
+  formData.append("LibID", LibID);
+  formData.append("BookID", BookID);
+  formData.append("BookTitle", BookTitle);
+  formData.append("password", password);
+  formData.append("BookCover", coverBlob, "cover.png"); // 👈 important: give filename
+
+  const res = await fetch(serverLink + "/NewBook", {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to add book");
+  return data;
+}
 async function getLibraryContents(libName) {
   const res = await fetch(serverLink + "/LibraryContents", {
     method: "POST",
