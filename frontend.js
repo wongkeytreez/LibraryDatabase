@@ -12,7 +12,7 @@ screen.style.fontFamily = "Segoe UI, Roboto, Arial, sans-serif";
 
 
 let ListOfBooks = [];
-let borrow=true;
+let SidebarStatus="Borrow";
 // Start screen
 function Start1() {
     document.getElementById("hello").style.opacity=0;
@@ -136,47 +136,104 @@ console.log(libName,password,checkPassword(libName,password))
 
 
 if (server) {
+
     function setToggle(state) {
-  let onBtn = document.getElementById("borrow");
-  let offBtn = document.getElementById("return");
+      SidebarStatus=state;
+const parent = document.getElementById("toggleContainer");
 
-  if (state === "return") {
-    onBtn.style.opacity = "1";
-    offBtn.style.opacity = "0.4";
-    console.log("Signal: BORROW");
-  } else {
-    onBtn.style.opacity = "0.4";
-    offBtn.style.opacity = "1";
-    console.log("Signal: RETURN");
-  }
+// change *every child element* inside it
+Array.from(parent.querySelectorAll("*")).forEach(el => {
 
+el.style.opacity=0.5
+});
+document.getElementById(state).style.opacity=1;
+const questions = document.getElementById("questions");
+questions.innerHTML = ""; 
+if(state=="add"){
+// clear it first
+
+// Book ID input
+const bookIdInput = document.createElement("input");
+bookIdInput.type = "text";
+bookIdInput.placeholder = "Book ID";
+bookIdInput.id = "bookId";
+questions.appendChild(bookIdInput);
+
+// Book Name input
+const bookNameInput = document.createElement("input");
+bookNameInput.type = "text";
+bookNameInput.placeholder = "Book Name";
+bookNameInput.id = "bookName";
+questions.appendChild(bookNameInput);
+
+// Take picture button
+const takePicBtn = document.createElement("button");
+takePicBtn.textContent = "Take a picture";
+takePicBtn.onclick = async() => {
+  // For now just show placeholder
+  createManualCropper(preview,ImagesList[ImagesList.length-1])
+//showImage(await cropForeground(ImagesList[ImagesList.length-1]),preview);
+};
+questions.appendChild(takePicBtn);
+
+// Image preview (empty for now)
+const preview = document.createElement("div");
+preview.id = "preview";
+preview.style.display = "block";
+preview.style.width = "100%";
+preview.style.height = "auto";
+preview.style.marginTop = "10px";
+questions.appendChild(preview);
+
+// Submit button
+const submitBtn = document.createElement("button");
+submitBtn.textContent = "Submit";
+submitBtn.onclick = () => {
+  const bookId = bookIdInput.value.trim();
+  const bookName = bookNameInput.value.trim();
+  const bookCover = preview.getCroppedImageData();
+  console.log({ bookId, bookName,bookCover });
+};
+questions.appendChild(submitBtn);
+}
+
+}
 initCamera().then(()=>{
 runCamera();
 })
-}
-
 // expose function globally
 window.setToggle = setToggle;
      document.getElementById("hello").style.pointerEvents = "auto"
   let sidebar = document.getElementById("hello");
+
+
   screen.width = "70%";
   sidebar.style.width = "30%";
   sidebar.style.opacity = 1;
   sidebar.style.position = "static";
-
+  sidebar.style.display="flex";
+  sidebar.style.flexDirection="column";
   // --- Toggle container ---
   const toggleContainer = document.createElement("div");
   toggleContainer.style.margin = "12px";
 
   toggleContainer.innerHTML = `
-    <div style="display:flex; gap:10px;">
+    <div style="display:flex; gap:10px;" id="toggleContainer">
       <button type="button" id="borrow" onclick="setToggle('borrow')">BORROW</button>
       <button type="button" id="return" onclick="setToggle('return')">RETURN</button>
+      <button type="button" id="add" onclick="setToggle('add')">ADD BOOK</button>
+      <button type="button" id="delete" onclick="setToggle('delete')">REMOVE BOOK</button>
     </div>
   `;
+  sidebar.innerHTML="<div style=width:100%; id=imageDiv></div>"
 
   sidebar.appendChild(toggleContainer);
-
+  const questionsDiv=document.createElement('div');
+  questionsDiv.id="questions";
+  questionsDiv.style.width="70%"
+  questionsDiv.style.display="flex";
+  questionsDiv.style.flexDirection="column"
+  sidebar.appendChild(questionsDiv);
   // default state
   setToggle("borrow");
 }

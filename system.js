@@ -5,41 +5,35 @@ let videoStream = null;
 let stream = null;
 
 async function initCamera() {
-  if (!stream) {
-    stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    videoStream = document.createElement("video");
-    videoStream.srcObject = stream;
-    videoStream.playsInline = true; // iOS Safari fix
-    await videoStream.play();
-    videoStream.pause(); // immediately pause to save power
-  }
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  videoStream = document.createElement("video");
+  videoStream.srcObject = stream;
+  videoStream.playsInline = true; // iOS Safari fix
+  await videoStream.play();
 }
 
 // Capture frame as ImageData
-async function captureFrame() {
+function captureFrame() {
   if (!videoStream) {
-    await initCamera();
+    console.error("Camera not initialized!");
+    return null;
   }
-
-  // resume just for capture
-  videoStream.play();
-  await new Promise(r => videoStream.onplaying = r);
 
   const canvas = document.createElement("canvas");
   canvas.width = videoStream.videoWidth;
   canvas.height = videoStream.videoHeight;
 
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const ctx = canvas.getContext("2d", { willReadFrequently: true }); 
   ctx.drawImage(videoStream, 0, 0);
-
-  videoStream.pause(); // pause again after capture
 
   return ctx.getImageData(0, 0, canvas.width, canvas.height);
 }
 
 
+
 // Show the frame on screen (for debugging)
-function showImage(imageData, containerId) {
+function showImage(imageData, container) {
+  // make a canvas with the *original* size
   const canvas = document.createElement("canvas");
   canvas.width = imageData.width;
   canvas.height = imageData.height;
@@ -47,28 +41,137 @@ function showImage(imageData, containerId) {
   const ctx = canvas.getContext("2d");
   ctx.putImageData(imageData, 0, 0);
 
-  const container = document.getElementById(containerId);
-  container.innerHTML = ""; // clear old content
+  // clear container
+  container.innerHTML = "";
+
+  // wrap canvas in a responsive div or just style canvas
+  canvas.style.width = "100%";   // fit container width
+  canvas.style.height = "auto";  // auto adjust height
+  canvas.style.display = "block"; // remove extra gaps
+
   container.appendChild(canvas);
 }
-async function imageDataListToBlobs(imageDataList, type = "image/jpeg", quality = 0.8) {
-  const blobs = [];
+function createManualCropper(container, imageData) {
+   // Turn ImageData into <img>
+  const c = document.createElement("canvas");
+  c.width = imageData.width;
+  c.height = imageData.height;
+  c.getContext("2d").putImageData(imageData, 0, 0);
+  const imgURL = c.toDataURL();
 
-  for (const imageData of imageDataList) {
-    // Create an OffscreenCanvas (faster than regular canvas if available)
-    const canvas = new OffscreenCanvas(imageData.width, imageData.height);
-    const ctx = canvas.getContext("2d");
+  // Wrapper
+  const wrapper = document.createElement("div");
+  wrapper.style.position = "relative";
+  wrapper.style.display = "inline-block";
+  wrapper.style.userSelect = "none";
+  container.appendChild(wrapper);
 
-    // Put ImageData on the canvas
-    ctx.putImageData(imageData, 0, 0);
+  // Image
+  const img = document.createElement("img");
+  img.src = imgURL;
+  img.style.display = "block";
+  img.style.maxWidth = "100%";
+img.style.maxHeight = "100%";
+img.style.width = "100%";
+img.style.height = "auto";
 
-    // Convert canvas to Blob
-    const blob = await new Promise((resolve) =>
-      canvas.convertToBlob({ type, quality }).then(resolve)
-    );
+  wrapper.appendChild(img);
 
-    blobs.push(blob);
+  // Crop box
+  const cropBox = document.createElement("div");
+  cropBox.style.position = "absolute";
+  cropBox.style.border = "2px dashed lime";
+  cropBox.style.left = "50px";
+  cropBox.style.top = "50px";
+  cropBox.style.width = "100px";
+  cropBox.style.height = "100px";
+  wrapper.appendChild(cropBox);
+
+  // Handles
+  const positions = ["nw","ne","sw","se"];
+  const handles = {};
+  positions.forEach(pos => {
+    const h = document.createElement("div");
+    h.style.width = h.style.height = "12px";
+    h.style.background = "red";
+    h.style.position = "absolute";
+    h.style.cursor = pos+"-resize";
+    cropBox.appendChild(h);
+    handles[pos] = h;
+  });
+
+  function updateHandles() {
+    const w = cropBox.offsetWidth, h = cropBox.offsetHeight;
+    handles.nw.style.left = "-6px";  handles.nw.style.top = "-6px";
+    handles.ne.style.right = "-6px"; handles.ne.style.top = "-6px";
+    handles.sw.style.left = "-6px";  handles.sw.style.bottom = "-6px";
+    handles.se.style.right = "-6px"; handles.se.style.bottom = "-6px";
   }
+  updateHandles();
 
-  return blobs; // array of Blobs
+  // Dragging / resizing
+  let mode = null, startX, startY, startBox;
+  cropBox.addEventListener("mousedown", e => {
+    if (Object.values(handles).includes(e.target)) {
+      mode = e.target;
+    } else {
+      mode = "move";
+    }
+    startX = e.clientX;
+    startY = e.clientY;
+    startBox = cropBox.getBoundingClientRect();
+    e.preventDefault();
+  });
+  window.addEventListener("mousemove", e => {
+    if (!mode) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (mode === "move") {
+      cropBox.style.left = startBox.left + dx - wrapper.getBoundingClientRect().left + "px";
+      cropBox.style.top  = startBox.top + dy - wrapper.getBoundingClientRect().top + "px";
+    } else {
+      const box = cropBox.getBoundingClientRect();
+      const wrap = wrapper.getBoundingClientRect();
+      if (mode === handles.nw) {
+        cropBox.style.left = startBox.left + dx - wrap.left + "px";
+        cropBox.style.top  = startBox.top  + dy - wrap.top  + "px";
+        cropBox.style.width  = startBox.width  - dx + "px";
+        cropBox.style.height = startBox.height - dy + "px";
+      } else if (mode === handles.ne) {
+        cropBox.style.top  = startBox.top  + dy - wrap.top  + "px";
+        cropBox.style.width  = startBox.width  + dx + "px";
+        cropBox.style.height = startBox.height - dy + "px";
+      } else if (mode === handles.sw) {
+        cropBox.style.left = startBox.left + dx - wrap.left + "px";
+        cropBox.style.width  = startBox.width  - dx + "px";
+        cropBox.style.height = startBox.height + dy + "px";
+      } else if (mode === handles.se) {
+        cropBox.style.width  = startBox.width  + dx + "px";
+        cropBox.style.height = startBox.height + dy + "px";
+      }
+    }
+    updateHandles();
+  });
+  window.addEventListener("mouseup", () => { mode = null; });
+
+  // Export cropped ImageData
+  wrapper.getCroppedImageData = () => {
+    const box = cropBox.getBoundingClientRect();
+    const wrap = wrapper.getBoundingClientRect();
+const scaleX = imageData.width / img.getBoundingClientRect().width;
+const scaleY = imageData.height / img.getBoundingClientRect().height;
+
+    const x = (box.left - wrap.left) * scaleX;
+    const y = (box.top - wrap.top) * scaleY;
+    const w = box.width * scaleX;
+    const h = box.height * scaleY;
+
+    const outCanvas = document.createElement("canvas");
+    outCanvas.width = w;
+    outCanvas.height = h;
+    outCanvas.getContext("2d").drawImage(c, x, y, w, h, 0, 0, w, h);
+    return outCanvas.getContext("2d").getImageData(0, 0, w, h);
+  };
+
+  return wrapper;
 }

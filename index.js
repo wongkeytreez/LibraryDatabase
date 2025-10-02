@@ -208,17 +208,18 @@ async function getBookContents(BookID, LibID) {
 function SetUpBorrow(lib,book){
     BorrowData={lib:lib,book:book}
 }
-
+const ImagesList=[];
 //when someone wants to borrow, it counts down how many frames left until the system borrows
 async function runCamera(){
-    const ImagesList=[]
+    
 let BorrowData=null; 
 setInterval(async () => {
     ImagesList.push( captureFrame());
     
     if(ImagesList.length>Math.ceil(ImagesPerReccording/2)&&BorrowData==null)ImagesList.splice(0,1);
-    showImage(ImagesList[ImagesList.length-1],"hello")
-   
+
+    showImage(ImagesList[ImagesList.length-1],document.getElementById("imageDiv"))
+ 
     if(BorrowData!=null)if(ImagesList.length==ImagesPerReccording){
       
         Borrow(BorrowData.lib,BorrowData.book,await imageDataListToBlobs(ImagesList));BorrowData=null;
