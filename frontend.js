@@ -169,9 +169,11 @@ questions.appendChild(bookNameInput);
 // Take picture button
 const takePicBtn = document.createElement("button");
 takePicBtn.textContent = "Take a picture";
+let wrapper;
 takePicBtn.onclick = async() => {
   // For now just show placeholder
-  createManualCropper(preview,ImagesList[ImagesList.length-1])
+   wrapper= createManualCropper(preview,ImagesList[ImagesList.length-1]);
+  
 //showImage(await cropForeground(ImagesList[ImagesList.length-1]),preview);
 };
 questions.appendChild(takePicBtn);
@@ -188,11 +190,13 @@ questions.appendChild(preview);
 // Submit button
 const submitBtn = document.createElement("button");
 submitBtn.textContent = "Submit";
-submitBtn.onclick = () => {
+submitBtn.onclick = async () => {
   const bookId = bookIdInput.value.trim();
   const bookName = bookNameInput.value.trim();
-  const bookCover = preview.getCroppedImageData();
+  const bookCover = await wrapper.getCroppedImageBlob();
+  console.log(bookCover)
   console.log({ bookId, bookName,bookCover });
+  addNewBook(libID,bookId,bookName,bookCover);
 };
 questions.appendChild(submitBtn);
 }

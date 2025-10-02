@@ -155,23 +155,31 @@ img.style.height = "auto";
   window.addEventListener("mouseup", () => { mode = null; });
 
   // Export cropped ImageData
-  wrapper.getCroppedImageData = () => {
-    const box = cropBox.getBoundingClientRect();
-    const wrap = wrapper.getBoundingClientRect();
-const scaleX = imageData.width / img.getBoundingClientRect().width;
-const scaleY = imageData.height / img.getBoundingClientRect().height;
+wrapper.getCroppedImageBlob = () => {
+  const box = cropBox.getBoundingClientRect();
+  const wrap = wrapper.getBoundingClientRect();
+  const scaleX = imageData.width / img.getBoundingClientRect().width;
+  const scaleY = imageData.height / img.getBoundingClientRect().height;
 
-    const x = (box.left - wrap.left) * scaleX;
-    const y = (box.top - wrap.top) * scaleY;
-    const w = box.width * scaleX;
-    const h = box.height * scaleY;
+  const x = (box.left - wrap.left) * scaleX;
+  const y = (box.top - wrap.top) * scaleY;
+  const w = box.width * scaleX;
+  const h = box.height * scaleY;
 
-    const outCanvas = document.createElement("canvas");
-    outCanvas.width = w;
-    outCanvas.height = h;
-    outCanvas.getContext("2d").drawImage(c, x, y, w, h, 0, 0, w, h);
-    return outCanvas.getContext("2d").getImageData(0, 0, w, h);
-  };
+  const outCanvas = document.createElement("canvas");
+  outCanvas.width = w;
+  outCanvas.height = h;
+  outCanvas
+    .getContext("2d")
+    .drawImage(c, x, y, w, h, 0, 0, w, h);
+
+  return new Promise((resolve) => {
+    outCanvas.toBlob((blob) => {
+      resolve(blob);
+    }, "image/png"); // you can use "image/jpeg" too
+  });
+};
+
 
   return wrapper;
 }
