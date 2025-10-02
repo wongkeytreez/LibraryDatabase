@@ -51,150 +51,194 @@ function showImage(imageData, container) {
 
   container.appendChild(canvas);
 }function createManualCropper(container, imageData) {
-  // Turn ImageData into <img>
-  const c = document.createElement("canvas");
-  c.width = imageData.width;
-  c.height = imageData.height;
-  c.getContext("2d").putImageData(imageData, 0, 0);
-  const imgURL = c.toDataURL();
+  // source canvas (full-resolution)
+  const srcCanvas = document.createElement("canvas");
+  srcCanvas.width = imageData.width;
+  srcCanvas.height = imageData.height;
+  srcCanvas.getContext("2d").putImageData(imageData, 0, 0);
+  const imgURL = srcCanvas.toDataURL();
 
-  // Wrapper
+  // wrapper
   const wrapper = document.createElement("div");
-  wrapper.style.position = "relative";
-  wrapper.style.display = "inline-block";
-  wrapper.style.userSelect = "none";
+  Object.assign(wrapper.style, {
+    position: "relative",
+    display: "inline-block",
+    userSelect: "none",
+    touchAction: "none" // <- prevents page panning on touch
+  });
   container.appendChild(wrapper);
 
-  // Image
+  // image (visible)
   const img = document.createElement("img");
   img.src = imgURL;
-  img.style.display = "block";
-  img.style.maxWidth = "100%";
-  img.style.maxHeight = "100%";
-  img.style.width = "100%";
-  img.style.height = "auto";
+  Object.assign(img.style, {
+    display: "block",
+    maxWidth: "100%",
+    height: "auto",
+    width: "100%",
+     touchAction: "none",
+    pointerEvents: "none" 
+  });
   wrapper.appendChild(img);
 
-  // Crop box
+  // crop box
   const cropBox = document.createElement("div");
-  cropBox.style.position = "absolute";
-  cropBox.style.border = "2px dashed lime";
-  cropBox.style.left = "50px";
-  cropBox.style.top = "50px";
-  cropBox.style.width = "100px";
-  cropBox.style.height = "100px";
+  Object.assign(cropBox.style, {
+    position: "absolute",
+    border: "2px dashed lime",
+    left: "50px",
+    top: "50px",
+    width: "120px",
+    height: "120px",
+    touchAction: "none" // also on the box
+  });
   wrapper.appendChild(cropBox);
 
-  // Handles
-  const positions = ["nw", "ne", "sw", "se"];
+  // handles (bigger for touch)
+  const positions = ["nw","ne","sw","se"];
   const handles = {};
-  positions.forEach((pos) => {
+  positions.forEach(pos => {
     const h = document.createElement("div");
-    h.style.width = h.style.height = "12px";
-    h.style.background = "red";
-    h.style.position = "absolute";
-    h.style.cursor = pos + "-resize";
+    h.dataset.pos = pos;
+    Object.assign(h.style, {
+      width: "28px",
+      height: "28px",
+      borderRadius: "6px",
+      background: "rgba(255,0,0,0.9)",
+      position: "absolute",
+      zIndex: 5,
+      touchAction: "none",
+      display: "block"
+    });
+    // cursor hints (desktop)
+    if (pos === "nw" || pos === "se") h.style.cursor = "nwse-resize";
+    else h.style.cursor = "nesw-resize";
     cropBox.appendChild(h);
     handles[pos] = h;
   });
 
   function updateHandles() {
-    handles.nw.style.left = "-6px";  handles.nw.style.top = "-6px";
-    handles.ne.style.right = "-6px"; handles.ne.style.top = "-6px";
-    handles.sw.style.left = "-6px";  handles.sw.style.bottom = "-6px";
-    handles.se.style.right = "-6px"; handles.se.style.bottom = "-6px";
+    handles.nw.style.left = "0"; handles.nw.style.top = "0"; handles.nw.style.transform = "translate(-50%,-50%)";
+    handles.ne.style.right = "0"; handles.ne.style.top = "0"; handles.ne.style.transform = "translate(50%,-50%)";
+    handles.sw.style.left = "0"; handles.sw.style.bottom = "0"; handles.sw.style.transform = "translate(-50%,50%)";
+    handles.se.style.right = "0"; handles.se.style.bottom = "0"; handles.se.style.transform = "translate(50%,50%)";
   }
   updateHandles();
 
-  // Dragging / resizing
-  let mode = null, startX, startY, startBox;
+  // pointer-based drag/resize (works for mouse & touch)
+  let activePointerId = null;
+  let action = null; // "move" or "resize"
+  let resizePos = null;
+  let startPoint = {x:0,y:0};
+  let startRect = null;
 
-  function startDrag(e, touch = false) {
-    let point = touch ? e.touches[0] : e;
-    if (Object.values(handles).includes(e.target)) {
-      mode = e.target;
-    } else {
-      mode = "move";
-    }
-    startX = point.clientX;
-    startY = point.clientY;
-    startBox = cropBox.getBoundingClientRect();
+  cropBox.addEventListener("pointerdown", (e) => {
     e.preventDefault();
-  }
+    cropBox.setPointerCapture(e.pointerId);
+    activePointerId = e.pointerId;
+    startPoint = { x: e.clientX, y: e.clientY };
+    startRect = cropBox.getBoundingClientRect();
 
-  function onDrag(e, touch = false) {
-    if (!mode) return;
-    let point = touch ? e.touches[0] : e;
-    const dx = point.clientX - startX;
-    const dy = point.clientY - startY;
+    const hit = e.target.closest("[data-pos]");
+    if (hit && hit.dataset.pos) {
+      action = "resize";
+      resizePos = hit.dataset.pos; // "nw","ne","sw","se"
+    } else {
+      action = "move";
+      resizePos = null;
+    }
+  });
+
+  window.addEventListener("pointermove", (e) => {
+    if (activePointerId !== e.pointerId) return;
+    e.preventDefault();
+
+    const dx = e.clientX - startPoint.x;
+    const dy = e.clientY - startPoint.y;
     const wrap = wrapper.getBoundingClientRect();
 
-    if (mode === "move") {
-      cropBox.style.left =
-        startBox.left + dx - wrap.left + "px";
-      cropBox.style.top =
-        startBox.top + dy - wrap.top + "px";
-    } else {
-      if (mode === handles.nw) {
-        cropBox.style.left = startBox.left + dx - wrap.left + "px";
-        cropBox.style.top  = startBox.top  + dy - wrap.top  + "px";
-        cropBox.style.width  = startBox.width  - dx + "px";
-        cropBox.style.height = startBox.height - dy + "px";
-      } else if (mode === handles.ne) {
-        cropBox.style.top  = startBox.top  + dy - wrap.top  + "px";
-        cropBox.style.width  = startBox.width  + dx + "px";
-        cropBox.style.height = startBox.height - dy + "px";
-      } else if (mode === handles.sw) {
-        cropBox.style.left = startBox.left + dx - wrap.left + "px";
-        cropBox.style.width  = startBox.width  - dx + "px";
-        cropBox.style.height = startBox.height + dy + "px";
-      } else if (mode === handles.se) {
-        cropBox.style.width  = startBox.width  + dx + "px";
-        cropBox.style.height = startBox.height + dy + "px";
+    if (action === "move") {
+      let left = startRect.left + dx - wrap.left;
+      let top  = startRect.top  + dy - wrap.top;
+      // clamp inside wrapper
+      left = Math.max(0, Math.min(left, wrap.width - startRect.width));
+      top  = Math.max(0, Math.min(top, wrap.height - startRect.height));
+      cropBox.style.left = Math.round(left) + "px";
+      cropBox.style.top  = Math.round(top)  + "px";
+    } else if (action === "resize") {
+      let newLeft   = startRect.left;
+      let newTop    = startRect.top;
+      let newWidth  = startRect.width;
+      let newHeight = startRect.height;
+
+      if (resizePos.includes("n")) {
+        newTop    = startRect.top + dy;
+        newHeight = startRect.height - dy;
       }
+      if (resizePos.includes("s")) {
+        newHeight = startRect.height + dy;
+      }
+      if (resizePos.includes("w")) {
+        newLeft  = startRect.left + dx;
+        newWidth = startRect.width - dx;
+      }
+      if (resizePos.includes("e")) {
+        newWidth = startRect.width + dx;
+      }
+
+      // convert to wrapper coords and clamp
+      let relLeft = newLeft - wrap.left;
+      let relTop  = newTop - wrap.top;
+      const minSize = 24;
+      newWidth = Math.max(minSize, newWidth);
+      newHeight = Math.max(minSize, newHeight);
+      relLeft = Math.max(0, relLeft);
+      relTop  = Math.max(0, relTop);
+      if (relLeft + newWidth > wrap.width)  newWidth  = wrap.width - relLeft;
+      if (relTop  + newHeight > wrap.height) newHeight = wrap.height - relTop;
+
+      cropBox.style.left = Math.round(relLeft) + "px";
+      cropBox.style.top  = Math.round(relTop)  + "px";
+      cropBox.style.width  = Math.round(newWidth)  + "px";
+      cropBox.style.height = Math.round(newHeight) + "px";
+      updateHandles();
     }
-    updateHandles();
-    e.preventDefault();
-  }
+  }, { passive: false });
 
-  function endDrag() {
-    mode = null;
-  }
+  window.addEventListener("pointerup", (e) => {
+    if (activePointerId !== e.pointerId) return;
+    try { cropBox.releasePointerCapture(e.pointerId); } catch {}
+    activePointerId = null;
+    action = null;
+    resizePos = null;
+  });
 
-  // Mouse events
-  cropBox.addEventListener("mousedown", (e) => startDrag(e));
-  window.addEventListener("mousemove", (e) => onDrag(e));
-  window.addEventListener("mouseup", endDrag);
-
-  // Touch events
-  cropBox.addEventListener("touchstart", (e) => startDrag(e, true), { passive: false });
-  window.addEventListener("touchmove", (e) => onDrag(e, true), { passive: false });
-  window.addEventListener("touchend", endDrag);
-
-  // Export cropped ImageData
+  // Export cropped blob (clamped + rounded)
   wrapper.getCroppedImageBlob = () => {
     const box = cropBox.getBoundingClientRect();
     const wrap = wrapper.getBoundingClientRect();
-    const scaleX = imageData.width / img.getBoundingClientRect().width;
-    const scaleY = imageData.height / img.getBoundingClientRect().height;
+    const dispW = img.getBoundingClientRect().width;
+    const dispH = img.getBoundingClientRect().height;
+    const scaleX = imageData.width / dispW;
+    const scaleY = imageData.height / dispH;
 
-    const x = (box.left - wrap.left) * scaleX;
-    const y = (box.top - wrap.top) * scaleY;
-    const w = box.width * scaleX;
-    const h = box.height * scaleY;
+    let x = Math.round((box.left - wrap.left) * scaleX);
+    let y = Math.round((box.top  - wrap.top)  * scaleY);
+    let w = Math.round(box.width * scaleX);
+    let h = Math.round(box.height * scaleY);
 
-    const outCanvas = document.createElement("canvas");
-    outCanvas.width = w;
-    outCanvas.height = h;
-    outCanvas
-      .getContext("2d")
-      .drawImage(c, x, y, w, h, 0, 0, w, h);
+    // clamp to source bounds
+    x = Math.max(0, Math.min(x, imageData.width - 1));
+    y = Math.max(0, Math.min(y, imageData.height - 1));
+    w = Math.max(1, Math.min(w, imageData.width - x));
+    h = Math.max(1, Math.min(h, imageData.height - y));
 
-    return new Promise((resolve) => {
-      outCanvas.toBlob((blob) => {
-        resolve(blob);
-      }, "image/png");
-    });
+    const out = document.createElement("canvas");
+    out.width = w;
+    out.height = h;
+    out.getContext("2d").drawImage(srcCanvas, x, y, w, h, 0, 0, w, h);
+
+    return new Promise(resolve => out.toBlob(resolve, "image/png"));
   };
 
   return wrapper;
