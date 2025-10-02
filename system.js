@@ -50,9 +50,8 @@ function showImage(imageData, container) {
   canvas.style.display = "block"; // remove extra gaps
 
   container.appendChild(canvas);
-}
-function createManualCropper(container, imageData) {
-   // Turn ImageData into <img>
+}function createManualCropper(container, imageData) {
+  // Turn ImageData into <img>
   const c = document.createElement("canvas");
   c.width = imageData.width;
   c.height = imageData.height;
@@ -71,10 +70,9 @@ function createManualCropper(container, imageData) {
   img.src = imgURL;
   img.style.display = "block";
   img.style.maxWidth = "100%";
-img.style.maxHeight = "100%";
-img.style.width = "100%";
-img.style.height = "auto";
-
+  img.style.maxHeight = "100%";
+  img.style.width = "100%";
+  img.style.height = "auto";
   wrapper.appendChild(img);
 
   // Crop box
@@ -88,20 +86,19 @@ img.style.height = "auto";
   wrapper.appendChild(cropBox);
 
   // Handles
-  const positions = ["nw","ne","sw","se"];
+  const positions = ["nw", "ne", "sw", "se"];
   const handles = {};
-  positions.forEach(pos => {
+  positions.forEach((pos) => {
     const h = document.createElement("div");
     h.style.width = h.style.height = "12px";
     h.style.background = "red";
     h.style.position = "absolute";
-    h.style.cursor = pos+"-resize";
+    h.style.cursor = pos + "-resize";
     cropBox.appendChild(h);
     handles[pos] = h;
   });
 
   function updateHandles() {
-    const w = cropBox.offsetWidth, h = cropBox.offsetHeight;
     handles.nw.style.left = "-6px";  handles.nw.style.top = "-6px";
     handles.ne.style.right = "-6px"; handles.ne.style.top = "-6px";
     handles.sw.style.left = "-6px";  handles.sw.style.bottom = "-6px";
@@ -111,27 +108,33 @@ img.style.height = "auto";
 
   // Dragging / resizing
   let mode = null, startX, startY, startBox;
-  cropBox.addEventListener("mousedown", e => {
+
+  function startDrag(e, touch = false) {
+    let point = touch ? e.touches[0] : e;
     if (Object.values(handles).includes(e.target)) {
       mode = e.target;
     } else {
       mode = "move";
     }
-    startX = e.clientX;
-    startY = e.clientY;
+    startX = point.clientX;
+    startY = point.clientY;
     startBox = cropBox.getBoundingClientRect();
     e.preventDefault();
-  });
-  window.addEventListener("mousemove", e => {
+  }
+
+  function onDrag(e, touch = false) {
     if (!mode) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
+    let point = touch ? e.touches[0] : e;
+    const dx = point.clientX - startX;
+    const dy = point.clientY - startY;
+    const wrap = wrapper.getBoundingClientRect();
+
     if (mode === "move") {
-      cropBox.style.left = startBox.left + dx - wrapper.getBoundingClientRect().left + "px";
-      cropBox.style.top  = startBox.top + dy - wrapper.getBoundingClientRect().top + "px";
+      cropBox.style.left =
+        startBox.left + dx - wrap.left + "px";
+      cropBox.style.top =
+        startBox.top + dy - wrap.top + "px";
     } else {
-      const box = cropBox.getBoundingClientRect();
-      const wrap = wrapper.getBoundingClientRect();
       if (mode === handles.nw) {
         cropBox.style.left = startBox.left + dx - wrap.left + "px";
         cropBox.style.top  = startBox.top  + dy - wrap.top  + "px";
@@ -151,35 +154,48 @@ img.style.height = "auto";
       }
     }
     updateHandles();
-  });
-  window.addEventListener("mouseup", () => { mode = null; });
+    e.preventDefault();
+  }
+
+  function endDrag() {
+    mode = null;
+  }
+
+  // Mouse events
+  cropBox.addEventListener("mousedown", (e) => startDrag(e));
+  window.addEventListener("mousemove", (e) => onDrag(e));
+  window.addEventListener("mouseup", endDrag);
+
+  // Touch events
+  cropBox.addEventListener("touchstart", (e) => startDrag(e, true), { passive: false });
+  window.addEventListener("touchmove", (e) => onDrag(e, true), { passive: false });
+  window.addEventListener("touchend", endDrag);
 
   // Export cropped ImageData
-wrapper.getCroppedImageBlob = () => {
-  const box = cropBox.getBoundingClientRect();
-  const wrap = wrapper.getBoundingClientRect();
-  const scaleX = imageData.width / img.getBoundingClientRect().width;
-  const scaleY = imageData.height / img.getBoundingClientRect().height;
+  wrapper.getCroppedImageBlob = () => {
+    const box = cropBox.getBoundingClientRect();
+    const wrap = wrapper.getBoundingClientRect();
+    const scaleX = imageData.width / img.getBoundingClientRect().width;
+    const scaleY = imageData.height / img.getBoundingClientRect().height;
 
-  const x = (box.left - wrap.left) * scaleX;
-  const y = (box.top - wrap.top) * scaleY;
-  const w = box.width * scaleX;
-  const h = box.height * scaleY;
+    const x = (box.left - wrap.left) * scaleX;
+    const y = (box.top - wrap.top) * scaleY;
+    const w = box.width * scaleX;
+    const h = box.height * scaleY;
 
-  const outCanvas = document.createElement("canvas");
-  outCanvas.width = w;
-  outCanvas.height = h;
-  outCanvas
-    .getContext("2d")
-    .drawImage(c, x, y, w, h, 0, 0, w, h);
+    const outCanvas = document.createElement("canvas");
+    outCanvas.width = w;
+    outCanvas.height = h;
+    outCanvas
+      .getContext("2d")
+      .drawImage(c, x, y, w, h, 0, 0, w, h);
 
-  return new Promise((resolve) => {
-    outCanvas.toBlob((blob) => {
-      resolve(blob);
-    }, "image/png"); // you can use "image/jpeg" too
-  });
-};
-
+    return new Promise((resolve) => {
+      outCanvas.toBlob((blob) => {
+        resolve(blob);
+      }, "image/png");
+    });
+  };
 
   return wrapper;
 }
