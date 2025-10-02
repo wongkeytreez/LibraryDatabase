@@ -120,7 +120,7 @@ console.log(libName,password,checkPassword(libName,password))
   loading.style.fontSize = "18px";
   loading.style.margin = "20px";
   document.getElementById("screen").appendChild(loading);
-
+async function reloadLibrary(){
   try {
     ListOfBooks = await getLibraryContents(libName);
      // your existing function
@@ -132,8 +132,8 @@ console.log(libName,password,checkPassword(libName,password))
     console.error(e);
     return Start2();
   }
-
-
+}
+await reloadLibrary();
 
 if (server) {
 
@@ -197,6 +197,7 @@ submitBtn.onclick = async () => {
   console.log(bookCover)
   console.log({ bookId, bookName,bookCover });
   addNewBook(libID,bookId,bookName,bookCover);
+reloadLibrary();
 };
 questions.appendChild(submitBtn);
 }
@@ -476,8 +477,9 @@ card.appendChild(meta);
 
   const backBtn = document.createElement("button");
   backBtn.textContent = "Back";
-  backBtn.onclick = () => {
+  backBtn.onclick = async() => {
     cleanup();
+    await reloadLibrary();
     showLibrary();
   };
   actions.appendChild(backBtn);
