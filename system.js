@@ -30,6 +30,27 @@ function captureFrame() {
 }
 
 
+async function imageDataListToBlobs(imageDataList) {
+  const blobs = [];
+
+  for (const imageData of imageDataList) {
+    const canvas = document.createElement("canvas");
+    canvas.width = imageData.width;
+    canvas.height = imageData.height;
+    const ctx = canvas.getContext("2d");
+
+    // put the ImageData onto the canvas
+    ctx.putImageData(imageData, 0, 0);
+
+    // convert to blob
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg")
+    );
+    blobs.push(blob);
+  }
+
+  return blobs;
+}
 
 // Show the frame on screen (for debugging)
 function showImage(imageData, container) {

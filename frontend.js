@@ -204,6 +204,84 @@ showLibrary();
 };
 questions.appendChild(submitBtn);
 }
+else if(state == "borrow"){
+   const box = document.createElement("input");
+    let timeout;
+
+    // Run a script when Enter is pressed
+    box.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault(); 
+  SetUpBorrow(libID,box.value)
+  box.value="";
+  clearTimeout(timeout);
+       
+      }
+    });
+
+    // Reset timer whenever user types
+    box.addEventListener("input", () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        box.value = ""; // clear after 5s of inactivity
+        console.log("Cleared after inactivity");
+      }, 5000);
+    });
+    const questions = document.getElementById("questions");
+    questions.appendChild(box);
+}
+else if(state=="return"){
+  const box = document.createElement("input");
+    let timeout;
+
+    // Run a script when Enter is pressed
+    box.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault(); 
+  returnBook(libID,box.value)
+  box.value="";
+  clearTimeout(timeout);
+       
+      }
+    });
+
+    // Reset timer whenever user types
+    box.addEventListener("input", () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        box.value = ""; // clear after 5s of inactivity
+        console.log("Cleared after inactivity");
+      }, 5000);
+    });
+    const questions = document.getElementById("questions");
+    questions.appendChild(box);
+}
+else if(state=="delete"){
+   const box = document.createElement("input");
+    let timeout;
+
+    // Run a script when Enter is pressed
+    box.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault(); 
+  deleteBook(libID,box.value)
+  box.value="";
+  clearTimeout(timeout);
+       
+      }
+    });
+
+    // Reset timer whenever user types
+    box.addEventListener("input", () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        box.value = ""; // clear after 5s of inactivity
+        console.log("Cleared after inactivity");
+      }, 5000);
+    });
+    const questions = document.getElementById("questions");
+    questions.appendChild(box);
+}
 
 }
 initCamera().then(()=>{
@@ -490,15 +568,19 @@ card.appendChild(meta);
 
   // --- Borrowed histories grid below ---
   const historiesContainer = document.createElement("div");
-  historiesContainer.style.marginTop = "20px";
-  historiesContainer.style.width = "100%";
-  historiesContainer.style.display = "grid";
-  historiesContainer.style.gridTemplateColumns = "repeat(auto-fit, minmax(220px, 1fr))";
-  historiesContainer.style.gap = "16px";
+historiesContainer.style.marginTop = "20px";
+historiesContainer.style.width = "100%";
+historiesContainer.style.display = "grid";
+historiesContainer.style.gridTemplateColumns = "repeat(auto-fit, minmax(220px, auto))";
+historiesContainer.style.gap = "16px";
+historiesContainer.style.justifyContent = "center";
+historiesContainer.style.justifyItems = "center";
+
+
   container.appendChild(historiesContainer);
 
   const histories = Array.isArray(book.BorrowedHistory) ? book.BorrowedHistory : [];
-
+console.log(book)
   if (histories.length === 0) {
     const none = document.createElement("div");
     none.textContent = "No borrow history.";
@@ -514,13 +596,14 @@ card.appendChild(meta);
       hc.style.display = "flex";
       hc.style.flexDirection = "column";
       hc.style.gap = "8px";
+      hc.style.width="300px";
+      hc.style.height="400px";
 
       // thumbnail (if any)
       const thumbUrl = createURL(h.thumbnailPhoto ?? h.thumbnail ?? null);
       const thumbImg = document.createElement("img");
       thumbImg.src = thumbUrl ?? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==";
-      thumbImg.style.width = "100%";
-      thumbImg.style.height = "120px";
+      thumbImg.style.height = "40%";
       thumbImg.style.objectFit = "cover";
       thumbImg.style.borderRadius = "6px";
       hc.appendChild(thumbImg);
@@ -531,7 +614,7 @@ card.appendChild(meta);
       times.style.color = "#444";
       const start = h.start ? new Date(Number(h.start)).toLocaleString() : "-";
       const end = h.end ? new Date(Number(h.end)).toLocaleString() : "-";
-      times.textContent = `Start: ${start} — End: ${end}`;
+      times.textContent = `Borrowed: ${start} — Returned: ${end}`;
       hc.appendChild(times);
 
       // video preview + play button
@@ -540,8 +623,8 @@ card.appendChild(meta);
         const vid = document.createElement("video");
         vid.src = videoUrl;
         vid.controls = true;
-        vid.style.width = "100%";
-        vid.style.height = "140px";
+
+        vid.style.height = "50%";
         vid.style.borderRadius = "6px";
         hc.appendChild(vid);
       }

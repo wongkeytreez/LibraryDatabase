@@ -1,6 +1,6 @@
 const fps=2;
 const ImagesPerReccording=5;
-let password="sigma";
+let password="hi";
 async function checkPassword(name, password) {
   const res = await fetch(serverLink + "/checkPassword", {
     method: "POST",
@@ -78,7 +78,7 @@ async function getBookContents(BookID, LibID) {
     throw new Error("Unexpected response type: " + contentType + "\n" + errText);
   }
 
-  // Preserve headers so .formData() works
+  // Convert response to formData
   const blob = await res.blob();
   const formData = await new Response(blob, {
     headers: { "Content-Type": contentType }
@@ -88,9 +88,10 @@ async function getBookContents(BookID, LibID) {
   const borrowedHistory = [];
 
   for (const [fieldName, value] of formData.entries()) {
+
     if (fieldName === "metadata") {
       try {
-        book = JSON.parse( value);
+        book = JSON.parse(value);
       } catch (e) {
         console.error("Failed to parse metadata", e);
       }
@@ -98,14 +99,15 @@ async function getBookContents(BookID, LibID) {
       if (book) book.coverPicture = value; // Blob
     } else if (fieldName.startsWith("historyThumb-")) {
       const startTime = parseInt(fieldName.replace("historyThumb-", ""), 10);
-      let bStruct = new BorrowedStruct();
-      bStruct.start = startTime;
-      bStruct.thumbnailPhoto = value;
-      borrowedHistory.push(bStruct);
+      borrowedHistory.push({
+        start: startTime,
+        thumbnailPhoto: value,
+        video: null
+      });
     } else if (fieldName.startsWith("historyVideo-")) {
       const startTime = parseInt(fieldName.replace("historyVideo-", ""), 10);
-      const bStruct = borrowedHistory.find(b => b.start === startTime);
-      if (bStruct) bStruct.video = value;
+      const historyObj = borrowedHistory.find(h => h.start === startTime);
+      if (historyObj) historyObj.video = value;
     }
   }
 
@@ -114,10 +116,65 @@ async function getBookContents(BookID, LibID) {
 }
 
 
+async function deleteBook(libID, bookID) {
+  const res = await fetch(serverLink + "/DeleteBook", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      LibID: libID,
+      BookID: bookID,
+      password: password
+    })
+  });
+
+  const json = await res.json();
+  console.log(json);
+  return json;
+}
+
+async function borrowBook(libID, bookID, blobs) {
+  const formData = new FormData();
+  formData.append("LibID", libID);
+  formData.append("BookID", bookID);
+  formData.append("password", password); // make sure this exists
+
+  // append each blob as "images"
+blobs.forEach((blob, i) => {
+ formData.append("images", new File([blob], `frame_${i}.jpg`, { type: "image/jpeg" }));
+
+});
+
+
+  const res = await fetch(serverLink+"/Borrow", {
+    method: "POST",
+    body: formData
+  });
+
+  const json = await res.json();
+  console.log(json);
+  return json;
+}
+
+async function returnBook(libID, bookID) {
+  const res = await fetch(serverLink + "/Return", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      LibID: libID,
+      BookID: bookID,
+      password: password
+    })
+  });
+
+  const json = await res.json();
+  console.log(json);
+  return json;
+}
 
 
 function SetUpBorrow(lib,book){
     BorrowData={lib:lib,book:book}
+ImagesList.splice(0,ImagesList.length-Math.ceil(ImagesPerReccording/2));
 }
 const ImagesList=[];
 //when someone wants to borrow, it counts down how many frames left until the system borrows
@@ -125,16 +182,18 @@ async function runCamera(){
     
 let BorrowData=null; 
 setInterval(async () => {
+
     ImagesList.push( captureFrame());
     
-    if(ImagesList.length>Math.ceil(ImagesPerReccording/2)&&BorrowData==null)ImagesList.splice(0,1);
+    if((ImagesList.length>Math.ceil(ImagesPerReccording/2))&&window.BorrowData==null){ImagesList.splice(0,ImagesList.length-Math.ceil(ImagesPerReccording/2));}
 
     showImage(ImagesList[ImagesList.length-1],document.getElementById("imageDiv"))
- 
-    if(BorrowData!=null)if(ImagesList.length==ImagesPerReccording){
+
+    if(window.BorrowData!=null)if(ImagesList.length==ImagesPerReccording){
       
-        Borrow(BorrowData.lib,BorrowData.book,await imageDataListToBlobs(ImagesList));BorrowData=null;
-    }
+        borrowBook(window.BorrowData.lib,window.BorrowData.book,await imageDataListToBlobs(ImagesList))
+    window.BorrowData=null;
+      }
     
 }, 1000/fps)
 }
