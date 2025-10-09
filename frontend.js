@@ -230,6 +230,85 @@ else if(state == "borrow"){
     const questions = document.getElementById("questions");
     questions.appendChild(box);
 }
+else if (state == "isbnAdd") {
+  const questions = document.getElementById("questions");
+  questions.innerHTML = "";
+
+  const isbnInput = document.createElement("input");
+  isbnInput.type = "text";
+  isbnInput.placeholder = "Enter ISBN";
+  isbnInput.id = "isbnCode";
+  questions.appendChild(isbnInput);
+
+  const fetchBtn = document.createElement("button");
+  fetchBtn.textContent = "Fetch Book Info";
+  questions.appendChild(fetchBtn);
+
+  const infoBox = document.createElement("div");
+  infoBox.style.marginTop = "10px";
+  questions.appendChild(infoBox);
+
+  fetchBtn.onclick = async () => {
+    const isbn = isbnInput.value.trim();
+    if (!isbn) return alert("Enter an ISBN first!");
+
+    infoBox.innerHTML = "Fetching info...";
+async function getAuthorName(authorKey) {
+  const res = await fetch(`https://openlibrary.org${authorKey}.json`);
+  const data = await res.json();
+  return data.name || "Unknown";
+}
+
+try {
+  const res = await fetch(`https://openlibrary.org/isbn/${isbn}.json`);
+  if (!res.ok) throw new Error("Book not found");
+  const data = await res.json();
+
+  // get cover
+  const coverUrl = data.covers
+    ? `https://covers.openlibrary.org/b/id/${data.covers[0]}-L.jpg`
+    : null;
+
+  // fetch author names (if any)
+  let authorNames = [];
+  if (data.authors && data.authors.length > 0) {
+    authorNames = await Promise.all(
+      data.authors.map(async (a) => {
+        const r = await fetch(`https://openlibrary.org${a.key}.json`);
+        const j = await r.json();
+        return j.name || "Unknown";
+      })
+    );
+  }
+
+  // only update after authors finish loading
+  infoBox.innerHTML = `
+    <p><b>Title:</b> ${data.title || "Unknown"}</p>
+    <p><b>Authors:</b> ${authorNames.join(", ") || "Unknown"}</p>
+    ${coverUrl ? `<img src="${coverUrl}" style="width:120px;height:auto;">` : ""}
+  `;
+
+  let coverBlob = null;
+  if (coverUrl) {
+    const imgRes = await fetch(coverUrl);
+    coverBlob = await imgRes.blob();
+  }
+
+  const confirmBtn = document.createElement("button");
+  confirmBtn.textContent = "Add Book to Library";
+  confirmBtn.onclick = async () => {
+    await addNewBook(libID, isbn, data.title || "Untitled", coverBlob);
+    showLibrary();
+  };
+  infoBox.appendChild(confirmBtn);
+} catch (err) {
+  console.error(err);
+  infoBox.innerHTML = "Book not found or API error.";
+}
+
+  };
+}
+
 else if(state=="return"){
   const box = document.createElement("input");
     let timeout;
@@ -309,6 +388,7 @@ window.setToggle = setToggle;
       <button type="button" id="return" onclick="setToggle('return')">RETURN</button>
       <button type="button" id="add" onclick="setToggle('add')">ADD BOOK</button>
       <button type="button" id="delete" onclick="setToggle('delete')">REMOVE BOOK</button>
+      <button type="button" id="isbnAdd" onclick="setToggle('isbnAdd')">ADD BOOK FROM ISBN</button>
     </div>
   `;
   sidebar.innerHTML="<div style=width:100%; id=imageDiv></div>"
