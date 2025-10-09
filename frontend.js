@@ -232,82 +232,81 @@ else if(state == "borrow"){
 }
 else if (state == "isbnAdd") {
   const questions = document.getElementById("questions");
-  questions.innerHTML = "";
+  questions.innerHTML = ""; // clear previous stuff
 
+  // ISBN input
   const isbnInput = document.createElement("input");
   isbnInput.type = "text";
   isbnInput.placeholder = "Enter ISBN";
-  isbnInput.id = "isbnCode";
+  isbnInput.id = "isbn";
   questions.appendChild(isbnInput);
 
+  // Fetch button
   const fetchBtn = document.createElement("button");
   fetchBtn.textContent = "Fetch Book Info";
   questions.appendChild(fetchBtn);
 
+  // Info box
   const infoBox = document.createElement("div");
+  infoBox.id = "infoBox";
   infoBox.style.marginTop = "10px";
   questions.appendChild(infoBox);
 
   fetchBtn.onclick = async () => {
     const isbn = isbnInput.value.trim();
-    if (!isbn) return alert("Enter an ISBN first!");
+    if (!isbn) return alert("Enter an ISBN!");
 
-    infoBox.innerHTML = "Fetching info...";
-async function getAuthorName(authorKey) {
-  const res = await fetch(`https://openlibrary.org${authorKey}.json`);
-  const data = await res.json();
-  return data.name || "Unknown";
-}
+    infoBox.innerHTML = "Loading...";
 
-try {
-  const res = await fetch(`https://openlibrary.org/isbn/${isbn}.json`);
-  if (!res.ok) throw new Error("Book not found");
-  const data = await res.json();
+    let data, coverUrl, authorNames;
 
-  // get cover
-  const coverUrl = data.covers
-    ? `https://covers.openlibrary.org/b/id/${data.covers[0]}-L.jpg`
-    : null;
+    // 1️⃣ Try Open Library
+    try {
+      const res = await fetch(`https://openlibrary.org/isbn/${isbn}.json`);
+      if (res.ok) {
+        data = await res.json();
+        if (data.authors) {
+          const authorFetches = data.authors.map(a =>
+            fetch(`https://openlibrary.org${a.key}.json`).then(r => r.json())
+          );
+          authorNames = await Promise.all(authorFetches);
+        }
+        if (data.covers?.length)
+          coverUrl = `https://covers.openlibrary.org/b/id/${data.covers[0]}-L.jpg`;
+      }
+    } catch {}
 
-  // fetch author names (if any)
-  let authorNames = [];
-  if (data.authors && data.authors.length > 0) {
-    authorNames = await Promise.all(
-      data.authors.map(async (a) => {
-        const r = await fetch(`https://openlibrary.org${a.key}.json`);
-        const j = await r.json();
-        return j.name || "Unknown";
-      })
-    );
-  }
+    // 2️⃣ Fallback to Google Books
+    if (!data) {
+      try {
+        const gRes = await fetch(
+          `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`
+        );
+        const gData = await gRes.json();
+        if (gData.items?.length) {
+          const volume = gData.items[0].volumeInfo;
+          data = { title: volume.title, subtitle: volume.subtitle };
+          authorNames = (volume.authors || []).map(name => ({ name }));
+          coverUrl = volume.imageLinks?.thumbnail?.replace("http:", "https:");
+        }
+      } catch {}
+    }
 
-  // only update after authors finish loading
-  infoBox.innerHTML = `
-    <p><b>Title:</b> ${data.title || "Unknown"}</p>
-    <p><b>Authors:</b> ${authorNames.join(", ") || "Unknown"}</p>
-    ${coverUrl ? `<img src="${coverUrl}" style="width:120px;height:auto;">` : ""}
-  `;
-
-  let coverBlob = null;
-  if (coverUrl) {
-    const imgRes = await fetch(coverUrl);
-    coverBlob = await imgRes.blob();
-  }
-
-  const confirmBtn = document.createElement("button");
-  confirmBtn.textContent = "Add Book to Library";
-  confirmBtn.onclick = async () => {
-    await addNewBook(libID, isbn, data.title || "Untitled", coverBlob);
-    showLibrary();
-  };
-  infoBox.appendChild(confirmBtn);
-} catch (err) {
-  console.error(err);
-  infoBox.innerHTML = "Book not found or API error.";
-}
-
+    // 3️⃣ Display result
+    if (data) {
+      infoBox.innerHTML = `
+        <p><b>Title:</b> ${data.title || "Unknown"}</p>
+        <p><b>Authors:</b> ${(authorNames || [])
+          .map(a => a.name)
+          .join(", ") || "Unknown"}</p>
+        ${coverUrl ? `<img src="${coverUrl}" width="150">` : ""}
+      `;
+    } else {
+      infoBox.innerHTML = "Book not found in either database.";
+    }
   };
 }
+
 
 else if(state=="return"){
   const box = document.createElement("input");
