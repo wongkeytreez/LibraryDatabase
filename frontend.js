@@ -232,12 +232,12 @@ else if(state == "borrow"){
 }
 else if (state == "isbnAdd") {
   const questions = document.getElementById("questions");
-  questions.innerHTML = ""; // clear previous stuff
+  questions.innerHTML = ""; // clear old UI
 
   // ISBN input
   const isbnInput = document.createElement("input");
   isbnInput.type = "text";
-  isbnInput.placeholder = "Enter ISBN";
+  isbnInput.placeholder = "Enter ISBN code";
   isbnInput.id = "isbn";
   questions.appendChild(isbnInput);
 
@@ -246,22 +246,30 @@ else if (state == "isbnAdd") {
   fetchBtn.textContent = "Fetch Book Info";
   questions.appendChild(fetchBtn);
 
-  // Info box
+  // Info display box
   const infoBox = document.createElement("div");
   infoBox.id = "infoBox";
   infoBox.style.marginTop = "10px";
   questions.appendChild(infoBox);
+
+  // Add Book button
+  const addBtn = document.createElement("button");
+  addBtn.textContent = "Add Book";
+  addBtn.disabled = true;
+  questions.appendChild(addBtn);
+
+  let currentBookData = null;
 
   fetchBtn.onclick = async () => {
     const isbn = isbnInput.value.trim();
     if (!isbn) return alert("Enter an ISBN!");
 
     infoBox.innerHTML = "Loading...";
+    addBtn.disabled = true;
 
     let data, coverUrl, authorNames;
-
-    // 1️⃣ Try Open Library
     try {
+      // Try Open Library
       const res = await fetch(`https://openlibrary.org/isbn/${isbn}.json`);
       if (res.ok) {
         data = await res.json();
@@ -276,7 +284,7 @@ else if (state == "isbnAdd") {
       }
     } catch {}
 
-    // 2️⃣ Fallback to Google Books
+    // Fallback to Google Books
     if (!data) {
       try {
         const gRes = await fetch(
@@ -292,7 +300,7 @@ else if (state == "isbnAdd") {
       } catch {}
     }
 
-    // 3️⃣ Display result
+    // Show results
     if (data) {
       infoBox.innerHTML = `
         <p><b>Title:</b> ${data.title || "Unknown"}</p>
@@ -301,12 +309,26 @@ else if (state == "isbnAdd") {
           .join(", ") || "Unknown"}</p>
         ${coverUrl ? `<img src="${coverUrl}" width="150">` : ""}
       `;
+      addBtn.disabled = false;
+      currentBookData = { isbn, data, authorNames, coverUrl };
     } else {
       infoBox.innerHTML = "Book not found in either database.";
     }
   };
-}
 
+  addBtn.onclick = async () => {
+    if (!currentBookData) return alert("No book loaded!");
+    const blob = await fetch(currentBookData.coverUrl).then(r => r.blob());
+    await addNewBook(
+      libID,
+      currentBookData.isbn,
+      currentBookData.data.title,
+      blob
+    );
+    alert("Book added successfully!");
+    showLibrary();
+  };
+}
 
 else if(state=="return"){
   const box = document.createElement("input");
