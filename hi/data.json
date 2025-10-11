@@ -1,1 +1,1 @@
-{"books":[{"id":"8","title":"3","bookUrl":"https://raw.githubusercontent.com/wongkeytreez/LibraryDatabase/main/hi/8"},{"id":"4444","title":"hamik","bookUrl":"https://raw.githubusercontent.com/wongkeytreez/LibraryDatabase/main/hi/4444"}]}
+{"books":[{"id":"8","title":"3","bookUrl":"https://raw.githubusercontent.com/wongkeytreez/LibraryDatabase/main/hi/8","availible":true},{"id":"4444","title":"hamik","bookUrl":"https://raw.githubusercontent.com/wongkeytreez/LibraryDatabase/main/hi/4444","availible":true}]}
