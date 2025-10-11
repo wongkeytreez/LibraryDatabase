@@ -1,1 +1,2 @@
-{"books":[{},{"id":"9","title":"3","bookUrl":"https://raw.githubusercontent.com/wongkeytreez/LibraryDatabase/main/hi/9/data.json"}]}
+{"books":[
+  {"id":"9","title":"3","bookUrl":"https://raw.githubusercontent.com/wongkeytreez/LibraryDatabase/main/hi/9/data.json"}]}
