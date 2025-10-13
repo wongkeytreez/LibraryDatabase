@@ -4,14 +4,17 @@ let IsServer=null;
 
 let fps=null;
 let ImagesPerVideo=null;
-
+const ImagesList=[];
+async function borrowBook(bookID){
+    Borrow(await imageDataListToBlobs(ImagesList),bookID);
+}
 async function runCamera(){
     await initCamera();
 setInterval(async () => {
 
     ImagesList.push( captureFrame());
     
-    if((ImagesList.length>Math.ceil(ImagesPerReccording/2))&&window.BorrowData==null){ImagesList.splice(0,ImagesList.length-Math.ceil(ImagesPerReccording/2));}
+    if((ImagesList.length>Math.ceil(ImagesPerVideo/2))&&window.BorrowData==null){ImagesList.splice(0,ImagesList.length-Math.ceil(ImagesPerVideo/2));}
 
     showImage(ImagesList[ImagesList.length-1],document.getElementById("imageDiv"))
 

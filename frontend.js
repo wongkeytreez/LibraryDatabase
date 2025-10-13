@@ -110,8 +110,8 @@ function Start2() {
 async function Start3(LibName,libPassword){
     if(IsServer){
       const data= await RequestCookie(LibName,libPassword);
-     
-      if(data==null) return Start2();
+
+      if(data.error!=null) return Start2();
      
       fps=data.fps
       ImagesPerVideo=data.ImagesPerVideo;
@@ -119,6 +119,10 @@ async function Start3(LibName,libPassword){
     const sidebar = document.getElementById("sidebar");
     sidebar.style.width="20%";
     sidebar.style.height="100%";
+    const cameradiv=document.createElement("div");
+    cameradiv.id="imageDiv"
+    sidebar.appendChild(cameradiv);
+    runCamera();
     }
     const library=await getLibrary(LibName);
     if(library==null)Start2();
