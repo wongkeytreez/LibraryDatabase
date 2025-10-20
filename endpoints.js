@@ -11,23 +11,15 @@ return data
 async function getLibrary(libName) {
   const response = await fetch(GithubLink + libName + "/data.json");
   if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
-  const json = await response.json();
-
-  // decode the base64 "content" field
-  const decoded = atob(json.content.replace(/\n/g, ""));
-  const data = JSON.parse(decoded); // since it’s JSON content
-  return data;
+  return await response.json();
 }
-async function getBook(libName,bookID) {
-  const response = await fetch(GithubLink + libName + "/"+bookID+"/data.json");
+
+async function getBook(libName, bookID) {
+  const response = await fetch(GithubLink + libName + `/${bookID}/data.json`);
   if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
-  const json = await response.json();
-
-  // decode the base64 "content" field
-  const decoded = atob(json.content.replace(/\n/g, ""));
-  const data = JSON.parse(decoded); // since it’s JSON content
-  return data;
+  return await response.json();
 }
+
 async function AddBook(title,id,genres,desc,cover) {
 const form =  new FormData();
 form.append("photo", cover); // File or Blob

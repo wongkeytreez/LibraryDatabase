@@ -1,5 +1,5 @@
 const ServerAdress="https://a64357fd-0177-4658-a24c-6a4c2a7a6efa-00-2uwgh2sq3kxhv.riker.replit.dev"
-const GithubLink="https://api.github.com/repos/wongkeytreez/LibraryDatabase/contents/"
+const GithubLink = "https://raw.githubusercontent.com/wongkeytreez/LibraryDatabase/main/";
 let IsServer=null;
 
 let fps=null;

@@ -137,17 +137,18 @@ booksContainer.style.alignItems = "center";
 booksContainer.style.justifyContent = "center"; 
 booksContainer.style.zIndex="2";
 booksContainer.style.position="relative";
+let currentShownBook=null
     for(const book of library.books){
         const container = document.createElement("div");
 container.style.display = "flex";
 container.style.flexDirection = "column";
 container.style.alignItems = "center";      
-container.style.justifyContent = "center"; 
+container.style.justifyContent = "space-between"; 
 container.style.cursor="pointer";
 container.style.position="relative";
   container.style.margin = "12px";
   container.style.width = "200px";
-  container.style.height= "300px"
+  container.style.height= "350px"
   container.style.padding = "24px";
   container.style.borderRadius = "10px";
   container.style.boxShadow = "0 6px 20px rgba(0,0,0,0.12)";
@@ -155,24 +156,82 @@ container.style.position="relative";
 container.style.zIndex='2';
   const cover = document.createElement("img");
   cover.src=book.bookUrl+"/cover.jpg";
-  cover.style.maxHeight="40%";
-  cover.style.maxWidth="80%";
+  cover.style.maxHeight="60%";
+  cover.style.maxWidth="95%";
         container.appendChild(cover);
     
         const details = document.createElement("div");
-        details.innerHTML=`<h1>${book.title}</h1>`+
-        `<p>genres:${book.genres}</p>`;
+        details.style.display = "flex";
+details.style.flexDirection = "column";
+details.style.alignItems = "center";      
+details.style.justifyContent = "space-evenly";
+        details.innerHTML=`<h2 style="margin:0;font-size:30px;">${book.title}</h2>`+
+        `
+         <p style="margin:0;ont-size:25px;font-weight: bold;color: ${(book.history&&book.history[book.history.length-1].end==null)?"red":"green"};">${(book.history&&book.history[book.history.length-1].end==null)?"Unavailible":"Availible"}</p>
+        <p style="margin:0;font-size:12px;">genres:${(book.genres.length>0)?book.genres.toString():" not added yet!"}</p>
+        <p style="margin:0;font-size:12px;">authors:${(book.authors&&book.authors.length>0)?book.authors.toString():" not added yet!"}</p>
+       
+        `;
+        details.style.height="40%"
         container.appendChild(details);
+let historyDiv = document.createElement("div");
+let ghost=null;
+const flexGap = 12;
+    container.addEventListener("click", ()=>{
+ let bookData;
+   getBook(LibName,book.id).then((data)=>{bookData=data;},(err)=>{console.error(err)});
+ console.log(bookData)
+      if(currentShownBook==container){
+       container.style.pointerEvents="none";
+        for(let child of historyDiv.children){
+          child.style.transition=`opacity ${1000}ms ease`
+          child.style.opacity=0;
+      }
 
-    container.addEventListener("click",()=>{
- const flexGap = 12;
-centerChild(container, 1000, flexGap);
+     main.children[2].style.zIndex="1";
+     main.children[1].style.zIndex="1";
+     transitionTo(main.children[2], (parseFloat(getComputedStyle(container).left)+parseFloat(getComputedStyle(container).width)/2) +flexGap, (container.getBoundingClientRect().top )-flexGap ,1000)
+     
+const el = main.children[2].children[0];
+el.style.transition = "box-shadow 1000ms ease";
+
+requestAnimationFrame(() => {
+  el.style.boxShadow = "0 6px 20px rgba(0,0,0,0)";
+});
+
+     setTimeout(() => {
+        main.children[2].remove();
+        
+        transitionTo(booksContainer,0,0,1000)
+        reverseCenter(container,ghost,flexGap,1000)
+historyDiv.remove();
+historyDiv=document.createElement("div");
+           setTimeout(() => {
+              for(let sib of booksContainer.children){
+                if(sib==container)continue;
+          sib.style.transition=`opacity ${500}ms ease`
+          sib.style.opacity=1;
+      }
+      setTimeout(() => {
+        container.style.pointerEvents="";
+        for(let sib of booksContainer.children)sib.style.pointerEvents="";
+      }, 500);
+           }, 500);
+      }, 1000);
+   currentShownBook=null;
+        return;
+        
+      }
+      currentShownBook=container;
+ 
+ghost=centerChild(container, 1000, flexGap);
 booksContainer.style.left = "0px";
 booksContainer.style.top = "0px";
 transitionTo(booksContainer,0,-400,1000)
+container.style.pointerEvents="none";
 setTimeout(() => {
   const history = [{}, {}, {},{}, {}, {},{}, {}, {},{}, {}, {},{}, {}, {}];
-  const historyDiv = document.createElement("div");
+  
 
 
 
@@ -247,11 +306,86 @@ setTimeout(() => {
   for (let i = 0; i < history.length; i++) {
     historyDiv.children[i].style.position = "";
   }
+  container.style.pointerEvents="";
+    container.style.zIndex="3";
 }, 800 + history.length * staggerDelay);
 
+//description
+const desccont = document.createElement("div");
+Object.assign(desccont.style, {
+  position: "absolute",
+  top: (container.getBoundingClientRect().top  -flexGap)+ "px",
+  left:((parseFloat(getComputedStyle(container).left)+parseFloat(getComputedStyle(container).width)/2) +flexGap)+ "px",
+  transform: "translateX(-50%)",
+  width:200 + "px",
+
+  zIndex: "10",
+  display: "flex",
+  flexDirection: "row",
+  gap: flexGap + "px",
+  justifyContent: "center",
+  alignItems: "flex-start",
+  flexWrap: "wrap",
+  zIndex:1
+});
+
+const descCard = document.createElement("div");
+Object.assign(descCard.style, {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "flex-start",
+  justifyContent: "flex-start",
+  margin: "12px",
+  width: "100%",
+  height: "350px",
+  padding: "24px",
+  borderRadius: "10px",
+  boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
+  background: "white",
+  flex: "0 0 auto",
+
+  zIndex: 1,
+  gap: "10px",
+});
+
+descCard.innerHTML = `
+  <b style="font-size: 22px;">Synopsis</b>
+  <p id="synopsis" style="
+    font-size: 16px;
+    color: #333;
+    margin: 0;
+    overflow-y: auto;
+    max-height: 100%;
+    flex: 1;
+    pointer-events:auto;
+    white-space: pre-wrap;
+  "></p>
+`;
+
+const p = descCard.querySelector("#synopsis");
+const text = book.synopsis || "The synopsis hasn't been added yet.";
+let i = 0;
+console.log(book)
+function typeWriter() {
+  if (i < text.length) {
+    p.textContent += text.charAt(i);
+    i++;
+    setTimeout(typeWriter, Math.random()*10+5); // adjust speed (ms per letter)
+  }
+}
+setTimeout(typeWriter, 800)
+
+
+
+  desccont.appendChild(descCard);
+  main.appendChild(desccont);
+  transitionTo(desccont,(parseFloat(getComputedStyle(main).width) / 2) +parseFloat(getComputedStyle(container).width)*1.05,(container.getBoundingClientRect().top-flexGap ),1000)
+  setTimeout(() => {
+    desccont.style.zIndex="4";
+  }, 1000);
 }, 1000);
 
-
+  
     })
 booksContainer.appendChild(container);
     }
@@ -276,6 +410,7 @@ function centerChild(child, duration = 1000, flexGap = 12) {
   const childRect = child.getBoundingClientRect();
   const startX = childRect.left - parentRect.left-flexGap;
   const startY = childRect.top - parentRect.top-flexGap;
+console.log(childRect,parentRect)  
 
   // Ghost to keep layout
   const ghost = document.createElement("div");
@@ -283,7 +418,10 @@ function centerChild(child, duration = 1000, flexGap = 12) {
     width: `${childRect.width}px`,
     height: `${childRect.height}px`,
     margin: getComputedStyle(child).margin,
+    top: childRect.top+"px",
+    left: childRect.left+"px",
   });
+  console.log(childRect.top)
   parent.insertBefore(ghost, child);
 
   // Absolute positioning without jump
@@ -317,12 +455,12 @@ function centerChild(child, duration = 1000, flexGap = 12) {
 
 
 
-function reverseCenter(child, ghost, duration = 1000) {
-  const parentRect = child.parentElement.getBoundingClientRect();
-  const ghostRect = ghost.getBoundingClientRect();
+function reverseCenter(child, ghost,flexGap, duration = 1000) {
 
-  const targetX = ghostRect.left - parentRect.left;
-  const targetY = ghostRect.top - parentRect.top;
+
+
+  const targetX = parseFloat(getComputedStyle(ghost).left) -flexGap;
+  const targetY = parseFloat(getComputedStyle(ghost).top) -flexGap ;
 
   transitionTo(child, targetX, targetY, duration);
 
@@ -330,12 +468,10 @@ function reverseCenter(child, ghost, duration = 1000) {
     ghost.replaceWith(child);
     Object.assign(child.style, {
       position: "",
-      left: "",
-      top: "",
-      width: "",
-      height: "",
+
       transition: "",
     });
+
   }, duration);
 }
 
