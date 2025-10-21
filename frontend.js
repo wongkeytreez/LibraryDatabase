@@ -119,10 +119,226 @@ async function Start3(LibName,libPassword){
     const sidebar = document.getElementById("sidebar");
     sidebar.style.width="20%";
     sidebar.style.height="100%";
+        sidebar.style.display = "flex";
+sidebar.style.flexDirection = "column";
+sidebar.style.padding = "20px";
+sidebar.style.alignItems = "center";      
+sidebar.style.justifyContent = "center"; 
     const cameradiv=document.createElement("div");
     cameradiv.id="imageDiv"
+    cameradiv.style.position="absolute";
+    cameradiv.style.top="0"
+        cameradiv.style.left="0"
     sidebar.appendChild(cameradiv);
     runCamera();
+
+const group = createButtonGroup();
+const details = document.createElement("div");
+group.addButton("Add Book",(btn) => {
+   [...btn.parentElement.children].forEach(b => (b.style.opacity = 0.5));
+        btn.style.opacity = 1;
+  details.innerHTML="";
+  
+  const titleInput = document.createElement("input");
+  titleInput.placeholder="input title here";
+
+  const idInput = document.createElement("input");
+  idInput.placeholder="input id here";
+
+  const imgPopup = document.createElement("div");
+  imgPopup.style.width="100%";
+  imgPopup.style.height="100%";
+  imgPopup.style.backgroundColor="grey";
+  imgPopup.style.opacity="0.8";
+  imgPopup.style.zIndex="100"
+  imgPopup.style.position="absolute"
+  imgPopup.style.top="100vh";
+
+   document.body.appendChild(imgPopup)
+  transitionTo(imgPopup,0,0,1500);
+  setTimeout(() => {
+  const popup = document.createElement("div");
+  popup.style.width="20%";
+  popup.style.height="20%";
+  popup.style.backgroundColor="white";
+
+  popup.style.zIndex="102"
+  popup.style.position="absolute"
+  popup.style.top="100vh";
+  popup.style.display="flex";
+  popup.style.flexDirection="column";
+  popup.style.justifyContent="center";
+  popup.style.alignItems="center"
+  popup.style.borderRadius="12px"
+
+
+    popup.style.transition = `top ${500}ms ease, translate ${500}ms ease`;
+  requestAnimationFrame(() => {
+    popup.style.top = `50vh`;
+    popup. style.left="50vw"
+    popup.style.translate="-50% -50%"
+  });
+   document.body.appendChild(popup)
+document.body.appendChild(imgPopup)
+
+   const imgDiv = document.createElement("div");
+   document.getElementById("imageDiv").id="oldimageDiv"
+   imgDiv.id="imageDiv";
+   imgDiv.style.height="80%"
+   const group = createButtonGroup();
+   group.addButton("Take picture",(btn)=>{
+    if( btn.textContent=="Take picture"){
+   imgDiv.id="frozen";
+   btn.textContent="Retake picture"
+   group.container.children[1].style.opacity="1"
+    }
+    else{
+      imgDiv.id="imageDiv";
+   btn.textContent="Take picture"
+    group.container.children[1].style.opacity="0.5"
+    }
+   })
+   group.addButton("submit",()=>{
+
+   })
+   group.addButton("upload picture",()=>{
+group.container.children[1].style.opacity="0.5"
+
+   const filePicker = document.createElement("input");
+   filePicker.type="file";
+   filePicker.accept="image/*";
+   filePicker.style.display="none";
+    filePicker.onchange=async()=>{
+      group.container.children[0].textContent="Take picture"
+      group.container.children[0].click();
+        const img = new Image();
+     img.src = URL.createObjectURL( filePicker.files[0]);
+  await img.decode(); // wait until it's loaded
+
+  const canvas = document.getElementById("frozen").children[0];
+canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+    }
+   filePicker.click();
+   })
+   
+  
+   popup.appendChild(imgDiv)
+   popup.appendChild(group.container)
+   
+  }, 1000);
+   
+}
+);
+group.addButton("Add Book(ISBN)",(btn)=>{
+   [...btn.parentElement.children].forEach(b => (b.style.opacity = 0.5));
+        btn.style.opacity = 1;
+  
+details.innerHTML="";
+
+  details.className = "details";
+  details.style.display = "flex"; details.style.flexDirection = "column";
+  details.style.gap = "6px";
+  details.style.marginTop = "8px";
+details.style.alignItems = "center";
+
+  const input = document.createElement("input");
+  input.placeholder = "Enter ISBN";
+
+  const search = document.createElement("button");
+  search.textContent = "Search";
+
+  // inactivity timeout
+  let timer;
+  function resetTimer() {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      input.value=""
+    }, 5000);
+  }
+
+  input.addEventListener("keydown", resetTimer);
+  resetTimer();
+
+  search.onclick = async() => {
+    details.innerHTML="";
+      details.append(input, search);
+    clearTimeout(timer);
+   const data =await GetISBNBook(input.value);
+   if(data== null)return resetTimer();
+
+   const img = document.createElement("img");
+   img.src=data.cover;
+   img.style.height="40%";
+
+   details.appendChild(img);
+    console.log(data)
+   const infoDiv= document.createElement("div")
+  infoDiv.innerHTML=`
+  <div style="display:flex;flex-direction:column"><h3>Title</h3><p>${data.title}</p></div>
+  <div style="display:flex;flex-direction:column"><h3>Authors</h3><p>${data.authors}</p></div>
+  <div style="display:flex;flex-direction:column"><h3>Genres</h3><p>${data.genres}</p></div>
+  `;
+  infoDiv.style.display = "flex"; infoDiv.style.flexDirection = "row";
+  infoDiv.style.alignItems = "center";  infoDiv.style.gap = "12px";
+  
+  details.appendChild(infoDiv);
+   
+  const submit = document.createElement("button");
+  submit.textContent = "Confirm";
+    details.appendChild(submit);
+    submit.onclick=()=>{
+   
+     AddBook(data.title,input.value,data.genres,data.desc,data.cover)
+    }
+  };
+
+
+  details.append(input, search);
+  sidebar.appendChild(details);
+});
+group.addButton("Borrow Book", (btn)=>{
+  [...btn.parentElement.children].forEach(b => (b.style.opacity = 0.5));
+        btn.style.opacity = 1;
+details.innerHTML="";
+
+  details.className = "details";
+  details.style.display = "flex"; details.style.flexDirection = "column";
+  details.style.gap = "6px";
+  details.style.marginTop = "8px";
+
+  const input = document.createElement("input");
+  input.placeholder = "Enter book id/ISBN";
+
+  const submit = document.createElement("button");
+  submit.textContent = "Submit";
+
+  // inactivity timeout
+  let timer;
+  function resetTimer() {
+   
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      input.value=""
+    }, 5000);
+  }
+
+  input.addEventListener("keydown", resetTimer);
+  resetTimer();
+
+  submit.onclick = async () => {
+   try{ if(await getBook(LibName,input.value))
+   StartBorrow(input.value);
+   }catch(e){ input.placeholder="book not found!",input.value=""}
+  };
+
+  details.append(input, submit);
+  sidebar.appendChild(details);
+});
+sidebar.appendChild(group.container)
+sidebar.appendChild(details);
     }
     const library=await getLibrary(LibName);
     if(library==null)Start2();
@@ -230,7 +446,7 @@ booksContainer.style.top = "0px";
 transitionTo(booksContainer,0,-400,1000)
 container.style.pointerEvents="none";
 setTimeout(() => {
-  const history = [{}, {}, {},{}, {}, {},{}, {}, {},{}, {}, {},{}, {}, {}];
+  const history =bookData.history;
   
 
 
@@ -363,9 +579,9 @@ descCard.innerHTML = `
 `;
 
 const p = descCard.querySelector("#synopsis");
-const text = book.synopsis || "The synopsis hasn't been added yet.";
+const text = bookData.synopsis || "The synopsis hasn't been added yet.";
 let i = 0;
-console.log(book)
+
 function typeWriter() {
   if (i < text.length) {
     p.textContent += text.charAt(i);
@@ -479,3 +695,30 @@ function reverseCenter(child, ghost,flexGap, duration = 1000) {
 
 
 
+function createButtonGroup() {
+  const container = document.createElement("div");
+  container.style.display = "flex";
+  container.style.gap = "8px";
+
+  const buttons = [];
+
+  return {
+    addButton(label, callback) {
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      btn.style.opacity = 1;
+      btn.style.transition = "opacity 0.2s";
+      btn.style.cursor = "pointer";
+
+      btn.onclick = () => {
+    
+       if(callback)callback(btn);
+      };
+
+      container.appendChild(btn);
+      buttons.push(btn);
+
+
+    },container
+  };
+}

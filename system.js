@@ -7,7 +7,7 @@ async function initCamera() {
 }
 
 // Capture frame as ImageData
-function captureFrame(maxSizeKB = 20) {
+function captureFrame(maxSizeKB = 500) {
   if (!videoStream) {
     console.error("Camera not initialized!");
     return null;
@@ -22,7 +22,7 @@ function captureFrame(maxSizeKB = 20) {
 
   // Compute scale factor
   const scale = Math.min(1, Math.sqrt(maxPixels / (originalWidth * originalHeight)));
-
+console.log(scale)
   const width = Math.floor(originalWidth * scale);
   const height = Math.floor(originalHeight * scale);
 
@@ -60,6 +60,7 @@ async function imageDataListToBlobs(imageDataList) {
 
 // Show the frame on screen (for debugging)
 function showImage(imageData, container) {
+  try{
   // make a canvas with the *original* size
   const canvas = document.createElement("canvas");
   canvas.width = imageData.width;
@@ -72,9 +73,11 @@ function showImage(imageData, container) {
   container.innerHTML = "";
 
   // wrap canvas in a responsive div or just style canvas
-  canvas.style.width = "100%";   // fit container width
-  canvas.style.height = "auto";  // auto adjust height
+  canvas.style.maxWidth = "100%";   // fit container width
+  canvas.style.maxHeight = "100%";  // auto adjust height
   canvas.style.display = "block"; // remove extra gaps
 
   container.appendChild(canvas);
+  }catch(e){console.log(e)}
 }
+
