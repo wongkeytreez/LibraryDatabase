@@ -1,32 +1,58 @@
 async function RequestCookie(LibName,libPassword){
     const res = await fetch(ServerAdress + "/RequestCookie", {
   method: "POST",
+   credentials: "include",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ LibName, libPassword })
 });
 const data = await res.json();
-console.log(data)
-return data
+if(!data.error)return data
+else return;
 }
-async function getLibrary(libName) {
-  const response = await fetch(GithubLink + libName + "/data.json");
+// simple in-memory ETag cache
+const etagCache = new Map();
+
+async function fetchWithSmartCache(url) {
+  const headers = {};
+  const cachedEtag = etagCache.get(url);
+  if (cachedEtag) headers["If-None-Match"] = cachedEtag;
+
+  const response = await fetch(url, { headers, cache: "default" });
+
+  if (response.status === 304) {
+    // 304 means "Not Modified" → use cached version
+    return null;
+  }
+
   if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
-  return await response.json();
+
+  const etag = response.headers.get("ETag");
+  if (etag) etagCache.set(url, etag);
+
+  const data = await response.json();
+  return data;
+}
+
+async function getLibrary(libName) {
+  const url = `${GithubLink}${libName}/data.json`;
+  const data = await fetchWithSmartCache(url);
+  return data;
 }
 
 async function getBook(libName, bookID) {
-  const response = await fetch(GithubLink + libName + `/${bookID}/data.json`);
-  if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
-  return await response.json();
+  const url = `${GithubLink}${libName}/${bookID}/data.json`;
+  const data = await fetchWithSmartCache(url);
+  return data;
 }
 
-async function AddBook(title, id, genres, desc, cover) {
+
+async function AddBook(title, id, genres, desc, cover,authors) {
   const form = new FormData();
   if (typeof cover === "string") {
-    form.append("data", JSON.stringify({ title, id, genres, desc, cover }));
+    form.append("data", JSON.stringify({ title, id, genres, desc,authors, cover }));
   } else {
     form.append("photo", cover); // File or Blob
-    form.append("data", JSON.stringify({ title, id, genres, desc }));
+    form.append("data", JSON.stringify({ title, id, genres, desc,authors }));
   }
 
   const res = await fetch(ServerAdress + "/AddBook", {

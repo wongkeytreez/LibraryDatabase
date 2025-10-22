@@ -108,6 +108,9 @@ function Start2() {
   main.appendChild(container);
 }
 async function Start3(LibName,libPassword){
+  try{
+  main.innerHTML="";
+ 
     if(IsServer){
       const data= await RequestCookie(LibName,libPassword);
 
@@ -117,6 +120,7 @@ async function Start3(LibName,libPassword){
       ImagesPerVideo=data.ImagesPerVideo;
       main.style.width="80%";
     const sidebar = document.getElementById("sidebar");
+     sidebar.innerHTML="";
     sidebar.style.width="20%";
     sidebar.style.height="100%";
         sidebar.style.display = "flex";
@@ -291,7 +295,7 @@ details.style.alignItems = "center";
     details.appendChild(submit);
     submit.onclick=()=>{
    
-     AddBook(data.title,input.value,data.genres,data.desc,data.cover)
+     AddBook(data.title,input.value,data.genres,data.desc,data.cover,data.authors)
     }
   };
 
@@ -371,7 +375,8 @@ container.style.position="relative";
   container.style.background = "white";
 container.style.zIndex='2';
   const cover = document.createElement("img");
-  cover.src=book.bookUrl+"/cover.jpg";
+  cover.src=GithubLink+LibName+"/"+book.id+"/cover.jpg";
+  console.log(cover.src)
   cover.style.maxHeight="60%";
   cover.style.maxWidth="95%";
         container.appendChild(cover);
@@ -381,13 +386,27 @@ container.style.zIndex='2';
 details.style.flexDirection = "column";
 details.style.alignItems = "center";      
 details.style.justifyContent = "space-evenly";
-        details.innerHTML=`<h2 style="margin:0;font-size:30px;">${book.title}</h2>`+
-        `
-         <p style="margin:0;ont-size:25px;font-weight: bold;color: ${(book.history&&book.history[book.history.length-1].end==null)?"red":"green"};">${(book.history&&book.history[book.history.length-1].end==null)?"Unavailible":"Availible"}</p>
-        <p style="margin:0;font-size:12px;">genres:${(book.genres.length>0)?book.genres.toString():" not added yet!"}</p>
-        <p style="margin:0;font-size:12px;">authors:${(book.authors&&book.authors.length>0)?book.authors.toString():" not added yet!"}</p>
-       
-        `;
+       details.innerHTML = `
+<h2 style="
+  margin:0;
+  font-size:20px;
+  display:-webkit-box;
+  -webkit-line-clamp:2;      /* number of lines before cutting off */
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+">
+  ${book.title}
+</h2>
+
+  <p style="margin:0;font-size:15px;font-weight:bold;color:${(book.history && book.history[book.history.length - 1].end == null) ? "red" : "green"};">
+    ${(book.history && book.history[book.history.length - 1].end == null) ? "Unavailable" : "Available"}
+  </p>
+  <p style="margin:0;font-size:12px;">genres:${(book.genres && book.genres.length > 0) ? book.genres.toString() : " not added yet!"}</p>
+  <p style="margin:0;font-size:12px;">authors:${(book.authors && book.authors.length > 0) ? book.authors.toString() : " not added yet!"}</p>
+`;
+details.style.width="80%"
         details.style.height="40%"
         container.appendChild(details);
 let historyDiv = document.createElement("div");
@@ -579,7 +598,7 @@ descCard.innerHTML = `
 `;
 
 const p = descCard.querySelector("#synopsis");
-const text = bookData.synopsis || "The synopsis hasn't been added yet.";
+const text = bookData.desc || "The synopsis hasn't been added yet.";
 let i = 0;
 
 function typeWriter() {
@@ -606,6 +625,7 @@ setTimeout(typeWriter, 800)
 booksContainer.appendChild(container);
     }
     main.appendChild(booksContainer)
+  }catch(e){console.log(e)}
 }
 
 function transitionTo(el, x, y, duration = 1000) {
