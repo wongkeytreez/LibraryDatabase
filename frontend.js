@@ -107,8 +107,11 @@ function Start2() {
 
   main.appendChild(container);
 }
-async function Start3(LibName,libPassword){
+let LibName
+
+async function Start3(libName,libPassword){
   try{
+    LibName=libName
   main.innerHTML="";
  
     if(IsServer){
@@ -203,6 +206,12 @@ document.body.appendChild(imgPopup)
     }
    })
    group.addButton("submit",()=>{
+
+   })
+   group.addButton("cancel",()=>{
+  popup.style.top = `150vh`;
+    popup. style.left="50vw"
+    transitionTo(imgPopup,0,100,1000)
 
    })
    group.addButton("upload picture",()=>{
@@ -344,6 +353,11 @@ details.innerHTML="";
 sidebar.appendChild(group.container)
 sidebar.appendChild(details);
     }
+    reload()
+  }catch(e){console.log(e)}
+}
+
+async function reload() {
     const library=await getLibrary(LibName);
     if(library==null)Start2();
     main.innerHTML="";
@@ -625,9 +639,8 @@ setTimeout(typeWriter, 800)
 booksContainer.appendChild(container);
     }
     main.appendChild(booksContainer)
-  }catch(e){console.log(e)}
-}
 
+}
 function transitionTo(el, x, y, duration = 1000) {
   el.style.transition = `left ${duration}ms ease, top ${duration}ms ease`;
   requestAnimationFrame(() => {

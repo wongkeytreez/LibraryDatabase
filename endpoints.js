@@ -9,41 +9,22 @@ const data = await res.json();
 if(!data.error)return data
 else return;
 }
-// simple in-memory ETag cache
-const etagCache = new Map();
-
-async function fetchWithSmartCache(url) {
-  const headers = {};
-  const cachedEtag = etagCache.get(url);
-  if (cachedEtag) headers["If-None-Match"] = cachedEtag;
-
-  const response = await fetch(url, { headers, cache: "default" });
-
-  if (response.status === 304) {
-    // 304 means "Not Modified" → use cached version
-    return null;
-  }
-
+async function fetchNoCache(url) {
+  // Just append a random query param — no headers → no preflight
+  const response = await fetch(url + "?nocache=" + Date.now(), { cache: "no-store" });
   if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
-
-  const etag = response.headers.get("ETag");
-  if (etag) etagCache.set(url, etag);
-
-  const data = await response.json();
-  return data;
+  return await response.json();
 }
 
 async function getLibrary(libName) {
-  const url = `${GithubLink}${libName}/data.json`;
-  const data = await fetchWithSmartCache(url);
-  return data;
+  return await fetchNoCache(`${GithubLink}${libName}/data.json`);
 }
 
 async function getBook(libName, bookID) {
-  const url = `${GithubLink}${libName}/${bookID}/data.json`;
-  const data = await fetchWithSmartCache(url);
-  return data;
+  return await fetchNoCache(`${GithubLink}${libName}/${bookID}/data.json`);
 }
+
+
 
 
 async function AddBook(title, id, genres, desc, cover,authors) {
@@ -63,6 +44,8 @@ async function AddBook(title, id, genres, desc, cover,authors) {
 
   const data = await res.json();
   console.log(data);
+  
+  window.reload();
 }
 
 async function Borrow(photos,bookID) {
@@ -82,6 +65,7 @@ const res = await fetch(ServerAdress + "/Borrow", {
 
 const data = await res.json();
 console.log(data)
+  window.reload();
 }
 async function Return(bookID) {
 
@@ -95,6 +79,7 @@ const res = await fetch(ServerAdress + "/Return", {
 
 const data = await res.json();
 console.log(data)
+  window.reload();
 }
 async function GetISBNBook(isbn) {
   const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`;
