@@ -34,3 +34,7 @@ setInterval(async () => {
     
 }, 1000/fps)
 }
+setInterval(async()=>{
+    reload();
+    updateCookie();
+},60000*5)

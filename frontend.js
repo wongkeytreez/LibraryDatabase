@@ -141,16 +141,21 @@ sidebar.style.justifyContent = "center";
 
 const group = createButtonGroup();
 const details = document.createElement("div");
+
 group.addButton("Add Book",(btn) => {
    [...btn.parentElement.children].forEach(b => (b.style.opacity = 0.5));
         btn.style.opacity = 1;
   details.innerHTML="";
-  
-  const titleInput = document.createElement("input");
-  titleInput.placeholder="input title here";
+  details.style.display = "flex";
+details.style.flexDirection = "column";
+details.style.alignItems = "center";
+details.style.padding = "10px";
+details.style.gap = "10px";
+   let boundingBox=null;
 
-  const idInput = document.createElement("input");
-  idInput.placeholder="input id here";
+const img = document.createElement("img");
+
+  details.appendChild(img);
 
   const imgPopup = document.createElement("div");
   imgPopup.style.width="100%";
@@ -193,25 +198,37 @@ document.body.appendChild(imgPopup)
    imgDiv.id="imageDiv";
    imgDiv.style.height="80%"
    const group = createButtonGroup();
+
    group.addButton("Take picture",(btn)=>{
     if( btn.textContent=="Take picture"){
    imgDiv.id="frozen";
    btn.textContent="Retake picture"
    group.container.children[1].style.opacity="1"
+    boundingBox=enableBoundingBox(imgDiv.children[0])
     }
     else{
       imgDiv.id="imageDiv";
    btn.textContent="Take picture"
     group.container.children[1].style.opacity="0.5"
+    boundingBox.removeBoundingBox();
+
     }
    })
-   group.addButton("submit",()=>{
-
+   group.addButton("submit",async()=>{
+img.src= URL.createObjectURL(await boundingBox.getCroppedBlob());
+popup.style.pointerEvents="";
+popup.remove();
+imgPopup.remove()
    })
    group.addButton("cancel",()=>{
   popup.style.top = `150vh`;
     popup. style.left="50vw"
-    transitionTo(imgPopup,0,100,1000)
+  imgPopup.style.top = `150vh`;
+    imgPopup. style.left="50vw"
+    setTimeout(() => {
+      popup.remove();
+imgPopup.remove()
+    }, 1500);
 
    })
    group.addButton("upload picture",()=>{
@@ -243,6 +260,57 @@ canvas.width = img.width;
    
   }, 1000);
    
+  // inputs for ID and Title
+  const idInput = document.createElement("input");
+  idInput.placeholder = "Book ID";
+
+  const titleInput = document.createElement("input");
+  titleInput.placeholder = "Book Title";
+
+  // optional extra info inputs
+  const genreInput = document.createElement("input");
+  genreInput.placeholder = "Genres (comma separated)";
+
+  const authorInput = document.createElement("input");
+  authorInput.placeholder = "Authors (comma separated)";
+
+  const descInput = document.createElement("textarea");
+  descInput.placeholder = "Description";
+  descInput.style.width = "80%";
+  descInput.style.height = "60px";
+
+  const confirm = document.createElement("button");
+  confirm.textContent = "Confirm";
+
+  confirm.onclick = async() => {
+    AddBook(
+      titleInput.value,
+      idInput.value,
+      genreInput.value,
+      descInput.value,
+      await boundingBox.getCroppedBlob(),
+      authorInput.value
+    );
+    confirm.style.background="grey"
+    confirm.style.pointerEvents="none"
+  };
+[idInput, titleInput, genreInput, authorInput, descInput].forEach(i => {
+  i.style.width = "80%";
+  i.style.padding = "6px 10px";
+  i.style.border = "1px solid #ccc";
+  i.style.borderRadius = "6px";
+});
+confirm.style.marginTop = "8px";
+confirm.style.padding = "8px 16px";
+confirm.style.borderRadius = "6px";
+confirm.style.border = "none";
+confirm.style.background = "#4CAF50";
+confirm.style.color = "white";
+confirm.style.cursor = "pointer";
+
+
+  details.append(idInput, titleInput, genreInput, authorInput, descInput, confirm);
+  sidebar.appendChild(details);
 }
 );
 group.addButton("Add Book(ISBN)",(btn)=>{
@@ -330,16 +398,20 @@ details.innerHTML="";
 
   // inactivity timeout
   let timer;
-  function resetTimer() {
-   
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      input.value=""
-    }, 5000);
+function resetTimer(e) {
+  if (e.key === "Enter") {
+submit.click();
   }
+  
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    input.value = "";
+  }, 5000);
+}
 
-  input.addEventListener("keydown", resetTimer);
-  resetTimer();
+input.addEventListener("keydown", resetTimer);
+resetTimer();
+
 
   submit.onclick = async () => {
    try{ if(await getBook(LibName,input.value))
@@ -700,6 +772,127 @@ console.log(childRect,parentRect)
 
   return ghost;
 }
+
+function enableBoundingBox(canvas, onEdit = () => {}) {
+  const ctx = canvas.getContext("2d");
+  const rect = { x: 50, y: 50, w: 100, h: 100 };
+  const handleSize = 10;
+
+  let dragging = null;
+  let offsetX = 0, offsetY = 0;
+
+  const img = new Image();
+  img.src = canvas.toDataURL();
+  img.onload = draw;
+
+  function getScale(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    };
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    ctx.fillStyle = "red";
+    drawHandle(rect.x, rect.y); // TL
+    drawHandle(rect.x + rect.w, rect.y); // TR
+    drawHandle(rect.x, rect.y + rect.h); // BL
+    drawHandle(rect.x + rect.w, rect.y + rect.h); // BR
+  }
+
+  function drawHandle(x, y) {
+    ctx.fillRect(x - handleSize / 2, y - handleSize / 2, handleSize, handleSize);
+  }
+
+  function clampRect() {
+    if (rect.w < 20) rect.w = 20;
+    if (rect.h < 20) rect.h = 20;
+    rect.x = Math.max(0, Math.min(rect.x, canvas.width - rect.w));
+    rect.y = Math.max(0, Math.min(rect.y, canvas.height - rect.h));
+  }
+
+  function getHandle(x, y) {
+    const hs = handleSize;
+    if (Math.abs(x - rect.x) < hs && Math.abs(y - rect.y) < hs) return "tl";
+    if (Math.abs(x - (rect.x + rect.w)) < hs && Math.abs(y - rect.y) < hs) return "tr";
+    if (Math.abs(x - rect.x) < hs && Math.abs(y - (rect.y + rect.h)) < hs) return "bl";
+    if (Math.abs(x - (rect.x + rect.w)) < hs && Math.abs(y - (rect.y + rect.h)) < hs) return "br";
+    if (x > rect.x && x < rect.x + rect.w && y > rect.y && y < rect.y + rect.h) return "inside";
+    return null;
+  }
+
+  canvas.addEventListener("mousedown", (e) => {
+    const { x, y } = getScale(e);
+    dragging = getHandle(x, y);
+    offsetX = x - rect.x;
+    offsetY = y - rect.y;
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+    const { x, y } = getScale(e);
+
+    switch (dragging) {
+      case "inside":
+        rect.x = x - offsetX;
+        rect.y = y - offsetY;
+        break;
+      case "tl":
+        rect.w += rect.x - x;
+        rect.h += rect.y - y;
+        rect.x = x;
+        rect.y = y;
+        break;
+      case "tr":
+        rect.w = x - rect.x;
+        rect.h += rect.y - y;
+        rect.y = y;
+        break;
+      case "bl":
+        rect.w += rect.x - x;
+        rect.x = x;
+        rect.h = y - rect.y;
+        break;
+      case "br":
+        rect.w = x - rect.x;
+        rect.h = y - rect.y;
+        break;
+    }
+
+    clampRect();
+    draw();
+    onEdit({ ...rect });
+  });
+
+  window.addEventListener("mouseup", () => (dragging = null));
+
+  async function getCroppedBlob(quality = 0.9) {
+    const temp = document.createElement("canvas");
+    temp.width = rect.w;
+    temp.height = rect.h;
+    const tctx = temp.getContext("2d");
+    tctx.drawImage(img, rect.x, rect.y, rect.w, rect.h, 0, 0, rect.w, rect.h);
+    return await new Promise(res => temp.toBlob(res, "image/jpeg", quality));
+  }
+
+  function removeBoundingBox() {
+    window.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener("mouseup", onMouseUp);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  }
+
+  return { getCroppedBlob, removeBoundingBox };
+}
+
 
 
 

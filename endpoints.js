@@ -9,6 +9,16 @@ const data = await res.json();
 if(!data.error)return data
 else return;
 }
+async function updateCookie() {
+      const res = await fetch(ServerAdress + "/UpdateCookie", {
+  method: "POST",
+   credentials: "include",
+  headers: { "Content-Type": "application/json" },
+});
+const data = await res.json();
+if(!data.error)return data
+else return;
+}
 async function fetchNoCache(url) {
   // Just append a random query param — no headers → no preflight
   const response = await fetch(url + "?nocache=" + Date.now(), { cache: "no-store" });
