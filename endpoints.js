@@ -1,4 +1,5 @@
 async function RequestCookie(LibName,libPassword){
+  try{
     const res = await fetch(ServerAdress + "/RequestCookie", {
   method: "POST",
    credentials: "include",
@@ -7,7 +8,12 @@ async function RequestCookie(LibName,libPassword){
 });
 const data = await res.json();
 if(!data.error)return data
-else return;
+else return{error:data.error};
+  }catch(e){
+   
+console.log(e)
+ return{error:e}
+  }
 }
 async function updateCookie() {
       const res = await fetch(ServerAdress + "/UpdateCookie", {
@@ -27,17 +33,22 @@ async function fetchNoCache(url) {
 }
 
 async function getLibrary(libName) {
+  try{
   return await fetchNoCache(`${GithubLink}${libName}/data.json`);
+  }catch(e){
+console.log(e)
+return {error:e};
+  }
 }
 
 async function getBook(libName, bookID) {
+  try{
   return await fetchNoCache(`${GithubLink}${libName}/${bookID}/data.json`);
+    }catch(e){
+console.log(e)
+  }
 }
-
-
-
-
-async function AddBook(title, id, genres, desc, cover,authors) {
+async function AddBook(title, id, genres, desc, cover,authors,password) {
   const form = new FormData();
   if (typeof cover === "string") {
     form.append("data", JSON.stringify({ title, id, genres, desc,authors, cover }));
@@ -57,8 +68,57 @@ async function AddBook(title, id, genres, desc, cover,authors) {
   
   window.reload();
 }
+async function RemoveBook(id, password) {
+  const form = new FormData();
+  form.append("data", JSON.stringify({ id, password }));
 
-async function Borrow(photos,bookID) {
+  const res = await fetch(ServerAdress + "/RemoveBook", {
+    method: "POST",
+    credentials: "include",
+    body: form
+  });
+
+  const data = await res.json();
+  console.log(data);
+  window.location.reload();
+}
+
+async function EditBook(id, edits, password) {
+  const form = new FormData();
+
+  // include cover if it's a file
+  if (edits.cover instanceof File || edits.cover instanceof Blob) {
+    form.append("photo", edits.cover);
+  }
+
+  form.append("data", JSON.stringify({ id, edits, password }));
+
+  const res = await fetch(ServerAdress + "/EditBook", {
+    method: "POST",
+    credentials: "include",
+    body: form
+  });
+
+  const data = await res.json();
+  console.log(data);
+  if (data.success) window.reload();
+}
+async function EditSettings(newSettings, password) {
+  const body = { ...newSettings };
+  if (password) body.password = password;
+
+  const res = await fetch(ServerAdress + "/EditSettings", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const data = await res.json();
+  console.log(data);
+  window.reload();
+}
+async function Borrow(photos,bookID,password) {
 const form =  new FormData();
 
 for (const photo of photos) {
@@ -69,7 +129,6 @@ form.append("data", JSON.stringify({bookID}));
 const res = await fetch(ServerAdress + "/Borrow", {
   method: "POST",
   credentials:"include",
-  headers: { "Content-Type": "application/json" },
   body:form
 });
 
@@ -77,7 +136,7 @@ const data = await res.json();
 console.log(data)
   window.reload();
 }
-async function Return(bookID) {
+async function Return(bookID,password) {
 
    
 const res = await fetch(ServerAdress + "/Return", {

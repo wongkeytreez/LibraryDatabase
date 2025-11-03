@@ -1,7 +1,7 @@
 // Basic page setup
 document.documentElement.style.height = "100%";
 const main = document.getElementById("Main");
-
+let library;
 // Start screen
 function Start1() {
 main.style.margin = "0";
@@ -117,7 +117,7 @@ async function Start3(libName,libPassword){
     if(IsServer){
       const data= await RequestCookie(LibName,libPassword);
 
-      if(data.error!=null) return Start2();
+      if(data==null) return Start2();
      
       fps=data.fps
       ImagesPerVideo=data.ImagesPerVideo;
@@ -410,18 +410,62 @@ submit.click();
 }
 
 input.addEventListener("keydown", resetTimer);
-resetTimer();
+resetTimer({key:"3"});
 
 
   submit.onclick = async () => {
-   try{ if(await getBook(LibName,input.value))
+   if(library.books.some((b)=>b.id==String(input.value).replace(/\D/g, "")))
    StartBorrow(input.value);
-   }catch(e){ input.placeholder="book not found!",input.value=""}
+   else input.placeholder="book not found!",input.value=""
   };
 
   details.append(input, submit);
   sidebar.appendChild(details);
 });
+group.addButton("Return Book", (btn)=>{
+  [...btn.parentElement.children].forEach(b => (b.style.opacity = 0.5));
+        btn.style.opacity = 1;
+details.innerHTML="";
+
+  details.className = "details";
+  details.style.display = "flex"; details.style.flexDirection = "column";
+  details.style.gap = "6px";
+  details.style.marginTop = "8px";
+
+  const input = document.createElement("input");
+  input.placeholder = "Enter book id/ISBN";
+
+  const submit = document.createElement("button");
+  submit.textContent = "Submit";
+
+  // inactivity timeout
+  let timer;
+function resetTimer(e) {
+  if (e.key === "Enter") {
+submit.click();
+  }
+  
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    input.value = "";
+  }, 5000);
+}
+
+input.addEventListener("keydown", resetTimer);
+resetTimer({key:"3"});
+
+
+  submit.onclick = async () => {
+   if(library.books.some((b)=>b.id==String(input.value).replace(/\D/g, "")))
+   Return(input.value);
+   else input.placeholder="book not found!",input.value=""
+  };
+
+  details.append(input, submit);
+  sidebar.appendChild(details);
+});
+
+
 sidebar.appendChild(group.container)
 sidebar.appendChild(details);
     }
@@ -430,13 +474,16 @@ sidebar.appendChild(details);
 }
 
 async function reload() {
-    const library=await getLibrary(LibName);
-    if(library==null)Start2();
+    library=await getLibrary(LibName);
+        console.log(library)
+    if(library==null)return Start2();
+
     main.innerHTML="";
     main.style.flexDirection="column";
     const booksContainer = document.createElement("div")
     booksContainer.style.display = "flex";
 booksContainer.style.flexDirection = "row";
+booksContainer.style.flexWrap="wrap"
 booksContainer.style.width = "100%";
 booksContainer.style.height = "100%";
 booksContainer.style.alignItems = "center";      
@@ -462,7 +509,7 @@ container.style.position="relative";
 container.style.zIndex='2';
   const cover = document.createElement("img");
   cover.src=GithubLink+LibName+"/"+book.id+"/cover.jpg";
-  console.log(cover.src)
+
   cover.style.maxHeight="60%";
   cover.style.maxWidth="95%";
         container.appendChild(cover);
@@ -924,6 +971,8 @@ function reverseCenter(child, ghost,flexGap, duration = 1000) {
 function createButtonGroup() {
   const container = document.createElement("div");
   container.style.display = "flex";
+  container.style.flexWrap="wrap"
+  container.style.justifyContent="center"
   container.style.gap = "8px";
 
   const buttons = [];
