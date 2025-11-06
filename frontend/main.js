@@ -63,27 +63,46 @@ async function ReloadMain(libName, isServer) {
 function Book(pageCenter,contents,libName) {
        
     const base = document.createElement("div");
-    Object.assign(base.style, {
-        width: "11rem",
-        height: "16rem",
-          boxShadow: "0 1rem 2.5rem rgba(0, 0, 0, 0.25)", // deeper + softer
-        borderRadius: "1rem",
-        padding:"2rem",
-        display:"flex",flexDirection:"column",
-  gap:"auto",
-    justifyContent:"center"
-        
-    })
+Object.assign(base.style, {
+  width: "13rem",
+  height: "18rem",
+  boxShadow: "0 1rem 2.5rem rgba(0, 0, 0, 0.25)",
+  borderRadius: "1rem",
+  padding: "1rem",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between", // vertical spacing
+  alignItems: "center" // centers horizontally
+});
+
 
     const img= document.createElement("img");
     img.src = GithubLink+libName+"/"+contents.id+"/cover.jpg"
-    Object.assign(img.style, {maxHeight:"60%"})
+    Object.assign(img.style, {maxHeight:"50%",maxWidth:"80%",marginTop:"1rem"})
 base.appendChild(img);
     
 const metadata = document.createElement("div");
 metadata.innerHTML=`
-<h2>${contents.title}</h2>
+<h2 style="
+  font-size:1rem;
+  overflow:hidden;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  white-space:normal;
+  flex-shrink:0;margin:0.5rem;
+">
+  ${contents.title}
+</h2>
+
+<h1 style="color:${contents.availible==true?"green":"red"};font-size:1rem;margin:0">${contents.availible==true?"Availible":"Unavailible"}</h2>
+<p style="margin:0.3rem;font-size:0.8rem;">Authors:${contents.authors}</p>
+<p style="margin:0;font-size:0.8rem;">Genre:${contents.genres}</p>
 `
+Object.assign(metadata.style, {height:"45%",overflow:"auto",display: "flex",
+  flexDirection: "column",
+  alignItems: "center" // centers horizontally
+  })
 base.appendChild(metadata)
 
 
