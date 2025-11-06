@@ -64,21 +64,27 @@ function Book(pageCenter,contents,libName) {
        
     const base = document.createElement("div");
     Object.assign(base.style, {
-        width: "15rem",
-        height: "20rem",
+        width: "11rem",
+        height: "16rem",
           boxShadow: "0 1rem 2.5rem rgba(0, 0, 0, 0.25)", // deeper + softer
         borderRadius: "1rem",
-        padding:"0.5rem",
-        display:"flex",
-  gap:"3rem",
-    alignItems:"center",justifyContent:"center"
+        padding:"2rem",
+        display:"flex",flexDirection:"column",
+  gap:"auto",
+    justifyContent:"center"
         
     })
 
     const img= document.createElement("img");
     img.src = GithubLink+libName+"/"+contents.id+"/cover.jpg"
+    Object.assign(img.style, {maxHeight:"60%"})
 base.appendChild(img);
     
+const metadata = document.createElement("div");
+metadata.innerHTML=`
+<h2>${contents.title}</h2>
+`
+base.appendChild(metadata)
 
 
 
@@ -91,8 +97,8 @@ base.appendChild(img);
             main.appendChild(base)
             base.style.position = "absolute";
             Object.assign(ghost.style, {
-                width: base.style.width,
-                height: base.style.height
+                width: "calc("+base.style.width +" + "+base.style.padding+" + "+base.style.padding+")",
+                height:"calc("+ base.style.height +" + "+base.style.padding+" + "+base.style.padding+")"
             })
             for(const parent of base.parentElement.parentElement.children)
                 for(const child of parent.children){

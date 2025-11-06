@@ -16,7 +16,7 @@ Object.assign(center.style, {
 });
 
 center.innerHTML=`
-<h2>using as a: ${isServer?"library":"client"}</h2>
+<h2>connecting as a: ${isServer?"library":"client"}</h2>
 ${(error)?"<p style=color:red>"+error+"</p>":``}
 <div style="width:80%">
 <h3 style="font-size:0.8rem;margin-bottom:0.3rem">Library name</h3>
