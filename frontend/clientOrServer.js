@@ -9,7 +9,8 @@ Object.assign(main.style,{
     padding:"1%",
     width:"100%",
     height:"100%",
-    overflow: "auto"
+    overflow: "auto",
+   position : "relative",backgroundImage:"url(images/background.jpeg)",
 })
 
 function Start1(){

@@ -17,15 +17,96 @@ async function Start3(isServer) {
     if (isServer) {
         main.style.width = "80%"
         sidebar.style.width = "20%";
-        sidebar.style.height = "100%";
-        sidebar.style.backgroundColor = "grey"
-        setUpSidebar();
+
+
+
+    } else {
+        main.style.width = "95%"
+        sidebar.style.width = "5%";
+
     }
-    ReloadMain(libName)
+
+    sidebar.style.height = "100%";
+    sidebar.style.backgroundColor = "grey"
+    setUpSidebar(isServer);
+    ReloadMain(libName, isServer)
+    isserver = isServer
 }
 
-function setUpSidebar() {
+function setUpSidebar(isServer) {
+    Object.assign(sidebar.style, {
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start"
+        }
 
+    )
+    const listslist = document.createElement("div");
+    if (isServer) {
+
+    } else {
+
+        Object.assign(listslist.style, {
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            height: "100%",
+            width: "100%",
+            margin: 0,
+            paddingTop: "3rem",
+            gap: "2rem"
+        })
+    }
+    const icon3 = document.createElement("img");
+    icon3.src = "images/MostPopular.png";
+    icon3.onclick = () => {
+        document.getElementById("MostPopularList").scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "start"
+        });
+    }
+    icon3.style.width = "100%"
+    listslist.appendChild(icon3);
+
+    const icon4 = document.createElement("img");
+    icon4.src = "images/MostPopularISBN.png";
+    icon4.onclick = () => {
+        document.getElementById("MostPopularISBNList").scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "start"
+        });
+    }
+    icon4.style.width = "100%"
+    listslist.appendChild(icon4);
+    const icon1 = document.createElement("img");
+    icon1.src = "images/HighestRated.png";
+    icon1.onclick = () => {
+        document.getElementById("HighestRatedList").scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "start"
+        });
+    }
+    icon1.style.width = "100%"
+    listslist.appendChild(icon1);
+
+    const icon2 = document.createElement("img");
+    icon2.src = "images/HighestRatedISBN.png";
+    icon2.onclick = () => {
+        document.getElementById("HighestRatedISBNList").scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "start"
+        });
+    }
+    icon2.style.width = "100%"
+    listslist.appendChild(icon2);
+
+
+
+    sidebar.appendChild(listslist)
 }
 
 async function ReloadMain(libName, isServer) {
@@ -37,14 +118,121 @@ async function ReloadMain(libName, isServer) {
         width: "100%",
         height: "100%",
         overflow: "auto",
-        paddingTop: "10rem",
+        paddingTop: "1rem",
         flexDirection: "column",
         gap: "5rem"
     })
 
-    //all books
+    //most popular books
+    const MostPopular = document.createElement("div");
+    MostPopular.id = "MostPopularList"
+    Object.assign(MostPopular.style, {
+        width: "calc(100% - 4rem)",
 
+        padding: "2rem",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "3rem",
+        alignItems: "center",
+        justifyContent: "center"
+    })
+    MostPopular.innerHTML =  `<div style="width:100%;display:flex; justify-content:center;"><h1 style="
+display: inline-block;
+  font-family: 'Montserrat', sans-serif;
+  background: white;
+  border: 0.2rem solid rgba(0,0,0,0.2);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  box-sizing: border-box;
+"> List of the most popular books in ${libName}</h1></div>`
+    for (const book of library.mostPopular)
+
+        MostPopular.appendChild(Book((isServer ? "40vw" : "47.5vw"), library.books.find((b) => b.id == book.id), libName))
+
+
+    //most popular isbn books
+    const MostPopularISBN = document.createElement("div");
+    MostPopularISBN.id = "MostPopularISBNList"
+    Object.assign(MostPopularISBN.style, {
+        width: "calc(100% - 4rem)",
+
+        padding: "2rem",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "3rem",
+        alignItems: "center",
+        justifyContent: "center"
+    }) 
+    MostPopularISBN.innerHTML=`<div style="width:100%;display:flex; justify-content:center;"><h1 style="
+display: inline-block;
+  font-family: 'Montserrat', sans-serif;
+  background: white;
+  border: 0.2rem solid rgba(0,0,0,0.2);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  box-sizing: border-box;
+">List of the most popular ISBN books in ${libName}</h1></div>`
+    for (const book of library.mostPopularISBN)
+
+        MostPopularISBN.appendChild(Book((isServer ? "40vw" : "47.5vw"), library.books.find((b) => b.id == book), libName))
+
+
+    //highest rated books
+    const HighestRated = document.createElement("div");
+    HighestRated.id = "HighestRatedList"
+    Object.assign(HighestRated.style, {
+        width: "calc(100% - 4rem)",
+
+        padding: "2rem",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "3rem",
+        alignItems: "center",
+        justifyContent: "center"
+    })
+    HighestRated.innerHTML = ` <div style="width:100%;display:flex; justify-content:center;"><h1 style="
+display: inline-block;
+  font-family: 'Montserrat', sans-serif;
+  background: white;
+  border: 0.2rem solid rgba(0,0,0,0.2);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  box-sizing: border-box;
+"> List of the highest rated books in ${libName}</h1></div>`
+    for (const book of library.highestRatedBooks||[])
+
+        HighestRated.appendChild(Book((isServer ? "40vw" : "47.5vw"), library.books.find((b) => b.id == book), libName))
+
+    //highest rated isbn books
+    const HighestRatedISBN = document.createElement("div");
+    HighestRatedISBN.id = "HighestRatedISBNList"
+    Object.assign(HighestRatedISBN.style, {
+        width: "calc(100% - 4rem)",
+
+        padding: "2rem",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "3rem",
+        alignItems: "center",
+        justifyContent: "center"
+    })
+    HighestRatedISBN.innerHTML = ` <div style="width:100%;display:flex; justify-content:center;"><h1 style="
+display: inline-block;
+  font-family: 'Montserrat', sans-serif;
+  background: white;
+  border: 0.2rem solid rgba(0,0,0,0.2);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  box-sizing: border-box;
+"> List of the highest rated ISBN books in ${libName}</h1></div>`
+    for (const book of library.highestRatedBooksISBN)
+
+             HighestRatedISBN.appendChild(Book((isServer ? "40vw" : "47.5vw"), library.books.find((b) => b.id == book), libName))
+
+
+    //all books
     const AllBooks = document.createElement("div");
+    AllBooks.id = "allBooksList"
     Object.assign(AllBooks.style, {
         width: "calc(100% - 4rem)",
 
@@ -55,11 +243,23 @@ async function ReloadMain(libName, isServer) {
         alignItems: "center",
         justifyContent: "center"
     })
-    for (const book of library.books) {
+    AllBooks.innerHTML = `<div style="width:100%;display:flex; justify-content:center;"><h1 style="
+display: inline-block;
+  font-family: 'Montserrat', sans-serif;
+  background: white;
+  border: 0.2rem solid rgba(0,0,0,0.2);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  box-sizing: border-box;
+"> List of all books in ${libName}</h1></div>`
+    for (const book of library.books)
 
-        AllBooks.appendChild(Book((isServer ? "60vw" : "50vw"), book, libName))
-    }
+        AllBooks.appendChild(Book((isServer ? "40vw" : "47.5vw"), book, libName))
 
+    bookLists.appendChild(MostPopular)
+    bookLists.appendChild(MostPopularISBN)
+    bookLists.appendChild(HighestRated)
+    bookLists.appendChild(HighestRatedISBN)
     bookLists.appendChild(AllBooks)
     main.appendChild(bookLists)
 
@@ -83,7 +283,9 @@ function Book(pageCenter, contents, libName) {
 
 
     const img = document.createElement("img");
+
     img.src = GithubLink + libName + "/" + contents.id + "/cover.jpg"
+
     Object.assign(img.style, {
         maxHeight: "50%",
         maxWidth: "80%",
@@ -155,7 +357,7 @@ function Book(pageCenter, contents, libName) {
         base.style.left = ghost.offsetLeft + "px";
         base.style.top = ghost.offsetTop + "px";
         requestAnimationFrame(() => {
-            base.style.left = `calc(${pageCenter} - ${(Number(base.style.width.split("rem")[0])/2+Number(base.style.padding.split("rem")[0]))}rem)`
+            base.style.left = `calc(${pageCenter} - 7.5rem)`
             base.style.top = `10rem`
         })
 
@@ -168,7 +370,7 @@ function Book(pageCenter, contents, libName) {
         descBase.style.cssText = base.style.cssText;
         descBase.style.zIndex = "2"
         main.appendChild(descBase)
-        base.style.left = `calc(${pageCenter} - ${Number(base.style.width.split("rem")[0])*2}rem)`
+        base.style.left = `calc(${pageCenter} - 25rem)`
         descBase.onclick = async () => {
             hideBook();
 
@@ -180,6 +382,7 @@ function Book(pageCenter, contents, libName) {
 
 
         histbase = document.createElement("div");
+        main.appendChild(histbase);
         Object.assign(histbase.style, {
             width: "calc(100% - 4rem)",
 
@@ -194,7 +397,7 @@ function Book(pageCenter, contents, libName) {
             top: "calc(" + base.style.top + " + 20rem)"
 
         })
-        main.appendChild(histbase);
+
         for (const history of histories) {
             const currentBase = document.createElement("div");
             Object.assign(currentBase.style, {
@@ -233,7 +436,7 @@ function Book(pageCenter, contents, libName) {
             video.autoplay = false; // optional, just to be explicit
 
             video.addEventListener("loadeddata", () => {
-                video.currentTime = history.thumbnailFrame||0;
+                video.currentTime = history.thumbnailFrame || 0;
                 video.pause();
             });
 
@@ -241,62 +444,62 @@ function Book(pageCenter, contents, libName) {
 
             video.addEventListener("mouseleave", () => {
                 video.pause();
-                video.currentTime = history.thumbnailFrame||0;
+                video.currentTime = history.thumbnailFrame || 0;
             });
             video.style.maxHeight = "75%";
             video.style.maxWidth = "95%"
             currentBase.appendChild(video)
-            const borrowedTime = new Date(history.start )// example timestamp
-const returnedTime =new Date(history.end); // can be null
+            const borrowedTime = new Date(history.start) // example timestamp
+            const returnedTime = new Date(history.end); // can be null
 
-// readable dates
-const borrowedStr = borrowedTime.toLocaleString("en-US", {
-  weekday: "short",
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  hour: "2-digit",
-  minute: "2-digit"
-});
-const returnedStr = returnedTime
-  ? returnedTime.toLocaleString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    })
-  : "Not returned yet";
+            // readable dates
+            const borrowedStr = borrowedTime.toLocaleString("en-US", {
+                weekday: "short",
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+            const returnedStr = returnedTime ?
+                returnedTime.toLocaleString("en-US", {
+                    weekday: "short",
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }) :
+                "Not returned yet";
 
-// time difference (in ms)
-const diff = (returnedTime ? returnedTime - borrowedTime : Date.now() - borrowedTime);
-const seconds = Math.floor(diff / 1000) % 60;
-const minutes = Math.floor(diff / (1000 * 60)) % 60;
-const hours = Math.floor(diff / (1000 * 60 * 60));
+            // time difference (in ms)
+            const diff = (returnedTime ? returnedTime - borrowedTime : Date.now() - borrowedTime);
+            const seconds = Math.floor(diff / 1000) % 60;
+            const minutes = Math.floor(diff / (1000 * 60)) % 60;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
 
-const timeBorrowed = `${hours}h ${minutes}m ${seconds}s`;
+            const timeBorrowed = `${hours}h ${minutes}m ${seconds}s`;
 
-// create box
-const infoBox = document.createElement("div");
-Object.assign(infoBox.style, {
-  maxHeight: "25%",
-  maxWidth: "95%",
-  fontSize: "0.76rem",
-  display: "flex",
-  flexDirection: "column",
-  gap: "0.2rem",
-  textAlign: "center",
-});
+            // create box
+            const infoBox = document.createElement("div");
+            Object.assign(infoBox.style, {
+                maxHeight: "25%",
+                maxWidth: "95%",
+                fontSize: "0.76rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.2rem",
+                textAlign: "center",
+            });
 
-infoBox.innerHTML = `
+            infoBox.innerHTML = `
   <div><b>Borrowed:</b> ${borrowedStr}</div>
   <div><b>Returned:</b> ${returnedStr}</div>
   <div><b>Duration:</b> ${timeBorrowed}</div>
 `;
 
-// append to currentBase
-currentBase.appendChild(infoBox);
+            // append to currentBase
+            currentBase.appendChild(infoBox);
 
         }
 
@@ -336,19 +539,19 @@ currentBase.appendChild(infoBox);
         base.style.pointerEvents = "none"
         descBase.style.pointerEvents = "none"
         for (const history of histbase.children) {
-            
-               history.style.pointerEvents="none"
-          
-history.style.top = history.offsetTop + "px";
+
+            history.style.pointerEvents = "none"
+
+            history.style.top = history.offsetTop + "px";
             history.style.left = history.offsetLeft + "px";
-          
-             
-            
-           
+
+
+
+
         }
         for (const history of histbase.children) {
-             history.style.transition = `left ${1000}ms ease, top ${1000}ms ease`
-          history.style.position = "absolute"
+            history.style.transition = `left ${1000}ms ease, top ${1000}ms ease`
+            history.style.position = "absolute"
             if (Math.random() > 0.5) {
                 history.style.left = "-15rem"
             } else {
