@@ -19,6 +19,7 @@ async function Start3(isServer) {
         main.style.width = "80%"
         sidebar.style.width = "20%";
 
+      
 
 
     } else {
@@ -57,6 +58,12 @@ Object.assign(listslist.style, {
             paddingTop: "3rem",
             gap: "2rem"
         })
+          const video = document.createElement("div");
+        video.style.width="100%";
+        video.id="imageDiv";
+        sidebar.appendChild(video)
+
+       runCamera()
     } else {
 
         Object.assign(listslist.style, {

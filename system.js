@@ -73,8 +73,8 @@ function showImage(imageData, container) {
   container.innerHTML = "";
 
   // wrap canvas in a responsive div or just style canvas
-  canvas.style.maxWidth = "100%";   // fit container width
-  canvas.style.maxHeight = "100%";  // auto adjust height
+  canvas.style.width = "100%";   // fit container width
+  canvas.style.height = "100%";  // auto adjust height
   canvas.style.display = "block"; // remove extra gaps
 
   container.appendChild(canvas);
