@@ -6,7 +6,7 @@ Object.assign(main.style,{
     flexWrap:"wrap",
     justifyContent:"center",
     alignItems:"center",
-    padding:"1%",
+
     width:"100%",
     height:"100%",
     overflow: "auto",

@@ -1,4 +1,5 @@
 async function Start3(isServer) {
+    main.style.pointerEvents="none"
     const libName = (document.getElementById("libName")).value
     const libPassword = (isServer) ? (document.getElementById("libPassword")).value : ""
     if (libPassword == null) return Start2(isServer, "please enter library name")
@@ -27,13 +28,16 @@ async function Start3(isServer) {
     }
 
     sidebar.style.height = "100%";
-    sidebar.style.backgroundColor = "grey"
+    sidebar.style.backgroundColor = "rgb(60, 51, 80)"
     setUpSidebar(isServer);
     ReloadMain(libName, isServer)
     isserver = isServer
+    libname=libName;
+    main.style.pointerEvents=""
 }
 
 function setUpSidebar(isServer) {
+    sidebar.innerHTML=""
     Object.assign(sidebar.style, {
             display: "flex",
             flexDirection: "column",
@@ -43,7 +47,16 @@ function setUpSidebar(isServer) {
     )
     const listslist = document.createElement("div");
     if (isServer) {
-
+Object.assign(listslist.style, {
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            height: "100%",
+            width: "25%",
+            margin: 0,
+            paddingTop: "3rem",
+            gap: "2rem"
+        })
     } else {
 
         Object.assign(listslist.style, {
@@ -115,10 +128,10 @@ async function ReloadMain(libName, isServer) {
     console.log(library)
     const bookLists = document.createElement("div");
     Object.assign(bookLists.style, {
-        width: "100%",
-        height: "100%",
+        width: "calc(100% - 2rem)",
+        height: "calc(100% - 2rem)",
         overflow: "auto",
-        paddingTop: "1rem",
+        padding: "1rem",
         flexDirection: "column",
         gap: "5rem"
     })
@@ -355,7 +368,7 @@ function Book(pageCenter, contents, libName) {
         base.style.transition = `left ${1000}ms ease, top ${1000}ms ease`
 
         base.style.left = ghost.offsetLeft + "px";
-        base.style.top = ghost.offsetTop + "px";
+        base.style.top = ghost.offsetTop-ghost.parentElement.parentElement.scrollTop + "px";
         requestAnimationFrame(() => {
             base.style.left = `calc(${pageCenter} - 7.5rem)`
             base.style.top = `10rem`
@@ -584,7 +597,7 @@ function Book(pageCenter, contents, libName) {
         descBase.remove();
         descBase = ""
         console.log(ghost.offsetLeft)
-        base.style.top = ghost.offsetTop + "px";
+        base.style.top = ghost.offsetTop-ghost.parentElement.parentElement.scrollTop + "px";
         base.style.left = ghost.offsetLeft + "px";
         await sleep(500)
         ghost.parentElement.parentElement.style.opacity = "1"
