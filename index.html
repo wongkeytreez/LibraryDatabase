@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Microlibs</title>
  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
 </head><style>
     #Main {
   overflow-y: auto;
   scrollbar-width: thin; /* Firefox */
   scrollbar-color: rgba(0,0,0,0.3) transparent; /* Firefox */
+ 
 }
 
 /* Chrome / Edge / Safari */
@@ -29,9 +30,17 @@
 #Main::-webkit-scrollbar-thumb:hover {
   background: rgba(0,0,0,0.5);
 }
+.icon {
+  transition: transform 0.2s, filter 0.2s;
 
+}
+.icon:hover {
+  transform: scale(1.15);
+  
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.3));
+}
 </style>
-<body style="margin: 0;padding: 0;height: 100%;display: flex;flex-direction: row;overflow: hidden;">
+<body style=" background-image:url(images/background.jpeg);margin: 0;padding: 0;height: 100%;display: flex;flex-direction: row;overflow: hidden;">
         <div id="sidebar"></div>
     <div id="Main"></div>
 <script src="frontend/clientOrServer.js"></script>

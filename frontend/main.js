@@ -30,6 +30,7 @@ async function Start3(isServer) {
 
     sidebar.style.height = "100%";
     sidebar.style.backgroundColor = "rgb(60, 51, 80)"
+
     setUpSidebar(isServer);
     ReloadMain(libName, isServer)
     isserver = isServer
@@ -42,7 +43,11 @@ function setUpSidebar(isServer) {
     Object.assign(sidebar.style, {
             display: "flex",
             flexDirection: "column",
-            alignItems: "flex-start"
+            alignItems: "flex-start",
+             borderTopRightRadius:"2rem",
+        borderBottomRightRadius:"2rem",
+        boxShadow: "inset -2rem 0 4rem rgba(255, 255, 255, 0.05)",
+        borderRight: "0.5rem solid rgba(255,255,255,0.08)"
         }
 
     )
@@ -56,7 +61,7 @@ Object.assign(listslist.style, {
             width: "25%",
             margin: 0,
             paddingTop: "3rem",
-            gap: "2rem"
+            gap: "2rem",flex:"1"
         })
           const video = document.createElement("div");
         video.style.width="100%";
@@ -86,6 +91,7 @@ Object.assign(listslist.style, {
             inline: "start"
         });
     }
+    icon3.classList.add("icon");
     icon3.style.width = "100%"
     listslist.appendChild(icon3);
 
@@ -98,8 +104,10 @@ Object.assign(listslist.style, {
             inline: "start"
         });
     }
+    icon4.classList.add("icon");
     icon4.style.width = "100%"
     listslist.appendChild(icon4);
+
     const icon1 = document.createElement("img");
     icon1.src = "images/HighestRated.png";
     icon1.onclick = () => {
@@ -109,6 +117,7 @@ Object.assign(listslist.style, {
             inline: "start"
         });
     }
+    icon1.classList.add("icon");
     icon1.style.width = "100%"
     listslist.appendChild(icon1);
 
@@ -121,6 +130,7 @@ Object.assign(listslist.style, {
             inline: "start"
         });
     }
+    icon2.classList.add("icon");
     icon2.style.width = "100%"
     listslist.appendChild(icon2);
 
