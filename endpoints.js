@@ -1,72 +1,76 @@
-async function RequestCookie(LibName,libPassword){
-  try{
+async function RequestCookie(LibName, libPassword) {
+  try {
     const res = await fetch(ServerAdress + "/RequestCookie", {
-  method: "POST",
-   credentials: "include",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ LibName, libPassword })
-});
-const data = await res.json();
-if(!data.error)return data
-else return{error:data.error};
-  }catch(e){
-   
-console.log(e)
- return{error:e}
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ LibName, libPassword }),
+    });
+    const data = await res.json();
+    if (!data.error) return data;
+    else return { error: data.error };
+  } catch (e) {
+    console.log(e);
+    return { error: e };
   }
 }
 async function updateCookie() {
-      const res = await fetch(ServerAdress + "/UpdateCookie", {
-  method: "POST",
-   credentials: "include",
-  headers: { "Content-Type": "application/json" },
-});
-const data = await res.json();
-if(!data.error)return data
-else return;
+  const res = await fetch(ServerAdress + "/UpdateCookie", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+  });
+  const data = await res.json();
+  if (!data.error) return data;
+  else return;
 }
 async function fetchNoCache(url) {
   // Just append a random query param — no headers → no preflight
-  const response = await fetch(url + "?nocache=" + Date.now(), { cache: "no-store" });
+  const response = await fetch(url + "?nocache=" + Date.now(), {
+    cache: "no-store",
+  });
   if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
   return await response.json();
 }
 
 async function getLibrary(libName) {
-  try{
-  return await fetchNoCache(`${GithubLink}${libName}/data.json`);
-  }catch(e){
-console.log(e)
-return {error:e};
+  try {
+    return await fetchNoCache(`${GithubLink}${libName}/data.json`);
+  } catch (e) {
+    console.log(e);
+    return { error: e };
   }
 }
 
 async function getBook(libName, bookID) {
-  try{
-  return await fetchNoCache(`${GithubLink}${libName}/${bookID}/data.json`);
-    }catch(e){
-console.log(e)
+  try {
+    return await fetchNoCache(`${GithubLink}${libName}/${bookID}/data.json`);
+  } catch (e) {
+    console.log(e);
   }
 }
-async function AddBook(title, id, genres, desc, cover,authors,password) {
+async function AddBook(title, id, genres, desc, cover, authors, password) {
   const form = new FormData();
   if (typeof cover === "string") {
-    form.append("data", JSON.stringify({ title, id, genres, desc,authors, cover }));
+    form.append(
+      "data",
+      JSON.stringify({ title, id, genres, desc, authors, cover })
+    );
   } else {
     form.append("photo", cover); // File or Blob
-    form.append("data", JSON.stringify({ title, id, genres, desc,authors }));
+    form.append("data", JSON.stringify({ title, id, genres, desc, authors }));
   }
 
   const res = await fetch(ServerAdress + "/AddBook", {
     method: "POST",
     credentials: "include",
-    body: form // DO NOT set Content-Type manually
+    body: form, // DO NOT set Content-Type manually
   });
 
   const data = await res.json();
-  return data
-  
-  window.ReloadMain(libname,isserver);
+  return data;
+
+  window.ReloadMain(libname, isserver);
 }
 async function RemoveBook(id, password) {
   const form = new FormData();
@@ -75,7 +79,7 @@ async function RemoveBook(id, password) {
   const res = await fetch(ServerAdress + "/RemoveBook", {
     method: "POST",
     credentials: "include",
-    body: form
+    body: form,
   });
 
   const data = await res.json();
@@ -96,12 +100,12 @@ async function EditBook(id, edits, password) {
   const res = await fetch(ServerAdress + "/EditBook", {
     method: "POST",
     credentials: "include",
-    body: form
+    body: form,
   });
 
   const data = await res.json();
   console.log(data);
-  if (data.success) window.reload();
+  if (data.success) window.ReloadMain();
 }
 async function EditSettings(newSettings, password) {
   const body = { ...newSettings };
@@ -116,39 +120,37 @@ async function EditSettings(newSettings, password) {
 
   const data = await res.json();
   console.log(data);
-  window.reload();
+  window.ReloadMain();
 }
-async function Borrow(photos,bookID,password) {
-const form =  new FormData();
+async function Borrow(photos, bookID, password) {
+  const form = new FormData();
 
-for (const photo of photos) {
-  form.append("photos", photo); // name "files" must match multer field name
+  for (const photo of photos) {
+    form.append("photos", photo); // name "files" must match multer field name
+  }
+  form.append("data", JSON.stringify({ bookID, password }));
+
+  const res = await fetch(ServerAdress + "/Borrow", {
+    method: "POST",
+    credentials: "include",
+    body: form,
+  });
+
+  const data = await res.json();
+  console.log(data);
+  window.ReloadMain();
 }
-form.append("data", JSON.stringify({bookID}));
-   
-const res = await fetch(ServerAdress + "/Borrow", {
-  method: "POST",
-  credentials:"include",
-  body:form
-});
+async function Return(bookID, password) {
+  const res = await fetch(ServerAdress + "/Return", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ bookID, password }),
+  });
 
-const data = await res.json();
-console.log(data)
-  window.reload();
-}
-async function Return(bookID,password) {
-
-   
-const res = await fetch(ServerAdress + "/Return", {
-  method: "POST",
-  credentials:"include",
-  headers: { "Content-Type": "application/json" },
-  body:JSON.stringify({bookID})
-});
-
-const data = await res.json();
-console.log(data)
-  window.reload();
+  const data = await res.json();
+  console.log(data);
+  window.ReloadMain();
 }
 async function GetISBNBook(isbn) {
   const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`;
@@ -161,10 +163,17 @@ async function GetISBNBook(isbn) {
     if (!data.items || data.items.length === 0) {
       throw new Error("Book not found");
     }
-    const fullData=data.items[0].volumeInfo
-    console.log(fullData)
+    const fullData = data.items[0].volumeInfo;
+    console.log(fullData);
     // Return the raw book object from Google Books
-    return {title:fullData.title,id:isbn,genres:fullData.categories,desc:fullData.description,cover:fullData.imageLinks.thumbnail,authors:fullData.authors};
+    return {
+      title: fullData.title,
+      id: isbn,
+      genres: fullData.categories,
+      desc: fullData.description,
+      cover: fullData.imageLinks.thumbnail,
+      authors: fullData.authors,
+    };
   } catch (err) {
     console.error("Error fetching book details:", err.message);
     return { error: err.message };

@@ -21,8 +21,11 @@ function captureFrame(maxSizeKB = 500) {
   const maxPixels = Math.floor(maxBytes / 4);
 
   // Compute scale factor
-  const scale = Math.min(1, Math.sqrt(maxPixels / (originalWidth * originalHeight)));
-console.log(scale)
+  const scale = Math.min(
+    1,
+    Math.sqrt(maxPixels / (originalWidth * originalHeight))
+  );
+  console.log(scale);
   const width = Math.floor(originalWidth * scale);
   const height = Math.floor(originalHeight * scale);
 
@@ -60,24 +63,27 @@ async function imageDataListToBlobs(imageDataList) {
 
 // Show the frame on screen (for debugging)
 function showImage(imageData, container) {
-  try{
-  // make a canvas with the *original* size
-  const canvas = document.createElement("canvas");
-  canvas.width = imageData.width;
-  canvas.height = imageData.height;
+  try {
+    // make a canvas with the *original* size
+    const canvas = document.createElement("canvas");
+    canvas.width = imageData.width;
+    canvas.height = imageData.height;
 
-  const ctx = canvas.getContext("2d");
-  ctx.putImageData(imageData, 0, 0);
+    const ctx = canvas.getContext("2d");
+    ctx.putImageData(imageData, 0, 0);
 
-  // clear container
-  container.innerHTML = "";
+    // clear container
+    container.innerHTML = "";
 
-  // wrap canvas in a responsive div or just style canvas
-  canvas.style.width = "100%";   // fit container width
-  canvas.style.height = "100%";  // auto adjust height
-  canvas.style.display = "block"; // remove extra gaps
+    // wrap canvas in a responsive div or just style canvas
+    canvas.style.width = "100%"; // fit container width
+    canvas.style.height = "100%"; // auto adjust height
+    canvas.style.display = "block"; // remove extra gaps
 
-  container.appendChild(canvas);
-  }catch(e){console.log(e)}
+    container.appendChild(canvas);
+  } catch (e) {
+    console.log(e);
+  }
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
