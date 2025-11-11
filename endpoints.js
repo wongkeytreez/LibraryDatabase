@@ -64,9 +64,9 @@ async function AddBook(title, id, genres, desc, cover,authors,password) {
   });
 
   const data = await res.json();
-  console.log(data);
+  return data
   
-  window.reload();
+  window.ReloadMain(libname,isserver);
 }
 async function RemoveBook(id, password) {
   const form = new FormData();

@@ -42,7 +42,7 @@ function setUpSidebar(isServer) {
     sidebar.innerHTML=""
     Object.assign(sidebar.style, {
             display: "flex",
-            flexDirection: "column",
+  
             alignItems: "flex-start",
              borderTopRightRadius:"2rem",
         borderBottomRightRadius:"2rem",
@@ -61,14 +61,317 @@ Object.assign(listslist.style, {
             width: "25%",
             margin: 0,
             paddingTop: "3rem",
-            gap: "2rem",flex:"1"
+            gap: "2rem"
         })
           const video = document.createElement("div");
         video.style.width="100%";
         video.id="imageDiv";
-        sidebar.appendChild(video)
+        
 
        runCamera()
+       const buttonsDiv = document.createElement("div");
+       Object.assign(buttonsDiv.style,{
+        width:"100%",display:"flex",flexGrow:"1",flexWrap:"wrap",justifyContent:"center",alignItems:"center"
+       })
+       const leftcontainer = document.createElement("div");
+       leftcontainer.style.width="75%";
+       leftcontainer.style.height="100%"
+       leftcontainer.style.display="flex";
+       leftcontainer.style.flexDirection="column"
+       //buton group
+       const buttons = createButtonGroup();
+       const details = document.createElement("div");
+       buttonsDiv.appendChild(buttons.group);
+buttonsDiv.appendChild(details);
+       // --------BUTTONS---------
+      buttons.addButton("addbook (ISBN)", {}, () => {
+    details.innerHTML = "";
+
+    const isbnInput = document.createElement("input");
+    Object.assign(isbnInput.style, {
+        padding: "0.5rem 1rem",
+        fontSize: "1rem",
+        borderRadius: "0.3rem",
+        border: "1px solid #ccc",
+        width: "12rem",
+        display: "block",
+        marginBottom: "1rem",
+    });
+    details.appendChild(isbnInput);
+
+    let timeout;
+
+    isbnInput.addEventListener("input", () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            isbnInput.value = "";
+        }, 5000);
+    });
+
+    isbnInput.addEventListener("keydown", async e => {
+        if (e.key !== "Enter") return;
+
+        details.innerHTML = "";
+        details.appendChild(isbnInput);
+        isbnInput.value = isbnInput.value.replace(/\D/g, "");
+        clearTimeout(timeout);
+
+        const loading = document.createElement("p");
+        loading.textContent = "Fetching book info...";
+        details.appendChild(loading);
+
+        let book;
+        try {
+            book = await GetISBNBook(isbnInput.value);
+        } catch {
+            loading.textContent = "Error fetching book data.";
+            return;
+        }
+
+        if (!book || book.error) {
+            loading.style.color="red"
+            loading.textContent = "Book not found or invalid ISBN.";
+            return;
+        }
+
+        loading.remove();
+
+        const bookinfo = document.createElement("div");
+        Object.assign(bookinfo.style, {
+            display: "flex",
+            alignItems: "center",
+            gap: "1rem",
+            padding: "1rem",
+            border: "1px solid #ccc",
+            borderRadius: "0.5rem",
+            background: "#f9f9f9",
+            marginBottom: "1rem",
+        });
+
+        bookinfo.innerHTML = `
+            <img src="${book.cover}" style="width:5rem;height:auto;border-radius:0.3rem;">
+            <div>
+                <h3 style="margin:0;font-size:1.1rem;">${book.title}</h3>
+                <p style="margin:0.2rem 0 0;color:#555;">${book.authors}</p>
+            </div>
+        `;
+
+        const confirmButton = document.createElement("button");
+        confirmButton.textContent = "Add Book";
+        Object.assign(confirmButton.style, {
+            padding: "0.5rem 1rem",
+            border: "none",
+            borderRadius: "0.3rem",
+            background: "#007bff",
+            color: "white",
+            cursor: "pointer",
+        });
+
+        confirmButton.onclick = async () => {
+            confirmButton.disabled = true;
+            confirmButton.textContent = "Adding...";
+
+            try {
+                const data=await AddBook(
+                    book.title,
+                    isbnInput.value,
+                    book.genres,
+                    book.desc,
+                    book.cover,
+                    book.authors
+                );
+                if(data.error) return confirmButton.textContent=data.error
+                confirmButton.textContent = "Added!";
+            } catch(e) {
+                console.log(e)
+                confirmButton.textContent = "Failed. Try again.";
+                confirmButton.disabled = false;
+            }
+        };
+
+        details.append(bookinfo, confirmButton);
+    });
+}, () => {
+    details.innerHTML = "";
+});
+buttons.addButton("addbook (manual)", {}, () => {
+    details.innerHTML = "";
+
+    const form = document.createElement("div");
+    Object.assign(form.style, {
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.8rem",
+        padding: "1rem",
+        width: "20rem",
+        maxWidth: "100%",
+    });
+
+    // Helper to make inputs
+    const makeInput = (placeholder) => {
+        const input = document.createElement("input");
+        Object.assign(input.style, {
+            padding: "0.5rem 1rem",
+            fontSize: "1rem",
+            borderRadius: "0.3rem",
+            border: "1px solid #ccc",
+            width: "100%",
+            boxSizing: "border-box",
+        });
+        input.placeholder = placeholder;
+        return input;
+    };
+
+    const titleInput = makeInput("Title");
+    const authorsInput = makeInput("Authors (separate by comma)");
+    const genresInput = makeInput("Genres (separate by comma)");
+
+    const descInput = document.createElement("textarea");
+    Object.assign(descInput.style, {
+        padding: "0.5rem 1rem",
+        fontSize: "1rem",
+        borderRadius: "0.3rem",
+        border: "1px solid #ccc",
+        resize: "vertical",
+        width: "100%",
+        boxSizing: "border-box",
+    });
+    descInput.placeholder = "Description";
+
+    // Image area
+    const imageArea = document.createElement("div");
+    Object.assign(imageArea.style, {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "0.5rem",
+        border: "1px solid #ccc",
+        borderRadius: "0.5rem",
+        padding: "0.5rem",
+        background: "#f9f9f9",
+    });
+
+    const previewImg = document.createElement("img");
+    Object.assign(previewImg.style, {
+        maxWidth: "10rem",
+        maxHeight: "10rem",
+        width: "auto",
+        height: "auto",
+        objectFit: "contain",
+        background: "#fff",
+        borderRadius: "0.3rem",
+    });
+    imageArea.appendChild(previewImg);
+
+    const imgButtonRow = document.createElement("div");
+    Object.assign(imgButtonRow.style, {
+        display: "flex",
+        gap: "0.5rem",
+    });
+
+ // Create elements
+const imgBtn1 = document.createElement("button");
+imgBtn1.textContent = "Select Image";
+
+const imgBtn2 = document.createElement("button");
+imgBtn2.textContent = "Take Picture with Camera";
+
+const fileInput = document.createElement("input");
+fileInput.type = "file";
+fileInput.accept = "image/*";
+fileInput.style.display = "none";
+
+
+
+let cameraInterval;
+
+// File picker button
+imgBtn1.onclick = () => {
+  if (cameraInterval) clearInterval(cameraInterval); // stop camera updates
+  fileInput.click();
+};
+
+// Handle file selection
+fileInput.onchange = () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    previewImg.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+// Camera capture button
+imgBtn2.onclick = () => {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  const fps = 10; // you can adjust this
+
+  if (cameraInterval) clearInterval(cameraInterval); // reset if already running
+
+  cameraInterval = setInterval(() => {
+    if (ImagesList.length === 0) return;
+    ctx.putImageData(ImagesList[ImagesList.length - 1], 0, 0);
+    previewImg.src = canvas.toDataURL();
+  }, 1000 / fps);
+};
+
+
+
+    imgButtonRow.append(imgBtn1, imgBtn2);
+    imageArea.appendChild(imgButtonRow);
+
+    const submitButton = document.createElement("button");
+    submitButton.textContent = "Add Book";
+    Object.assign(submitButton.style, {
+        padding: "0.5rem 1rem",
+        border: "none",
+        borderRadius: "0.3rem",
+        background: "#007bff",
+        color: "white",
+        cursor: "pointer",
+        alignSelf: "center",
+        marginTop: "0.5rem",
+    });
+
+    submitButton.onclick = async () => {
+        submitButton.disabled = true;
+        submitButton.textContent = "Adding...";
+
+        const book = {
+            title: titleInput.value.trim(),
+            authors: authorsInput.value.split(",").map(s => s.trim()).filter(Boolean),
+            genres: genresInput.value.split(",").map(s => s.trim()).filter(Boolean),
+            desc: descInput.value.trim(),
+            cover: previewImg.src || "",
+        };
+
+        try {
+            const data = await AddBook(book.title, null, book.genres, book.desc, book.cover, book.authors);
+            if (data.error) {
+                submitButton.textContent = data.error;
+                submitButton.disabled = false;
+                return;
+            }
+            submitButton.textContent = "Added!";
+        } catch (e) {
+            console.log(e);
+            submitButton.textContent = "Failed. Try again.";
+            submitButton.disabled = false;
+        }
+    };
+
+    form.append(titleInput, authorsInput, genresInput, descInput, imageArea, submitButton);
+    details.appendChild(form);
+}, () => {
+    details.innerHTML = "";
+});
+
+              leftcontainer.appendChild(video)
+       leftcontainer.appendChild(buttonsDiv)
+
+       sidebar.appendChild(leftcontainer)
     } else {
 
         Object.assign(listslist.style, {
@@ -134,7 +437,18 @@ Object.assign(listslist.style, {
     icon2.style.width = "100%"
     listslist.appendChild(icon2);
 
-
+    const icon5 = document.createElement("img");
+    icon5.src = "images/ListOfAllBooks.png";
+    icon5.onclick = () => {
+        document.getElementById("allBooksList").scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "start"
+        });
+    }
+    icon5.classList.add("icon");
+    icon5.style.width = "100%"
+    listslist.appendChild(icon5);
 
     sidebar.appendChild(listslist)
 }
@@ -631,3 +945,46 @@ function Book(pageCenter, contents, libName) {
     return base
 }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+function createButtonGroup() {
+  const group = document.createElement("div");
+  group.style.display = "flex";
+  group.style.gap = "0.5rem";
+
+  let activeButton = null;
+    
+  function addButton(text, style = {}, callback = () => {},cancelcall=()=>{}) {
+    const btn = document.createElement("button");
+    btn.textContent = text;
+
+    // base style
+    Object.assign(btn.style, {
+      padding: "0.5rem 1rem",
+      border: "none",
+      borderRadius: "0.5rem",
+      background: "#3a5ccf",
+      color: "white",
+      cursor: "pointer",
+      opacity: 1,
+      transition: "opacity 0.2s, filter 0.2s",
+      ...style
+    });
+
+    btn.onclick = () => {
+      
+      if (activeButton) activeButton.style.opacity = 1;
+      btn.style.opacity = 0.6; // pressed look
+      if(activeButton==btn) {btn.style.opacity=1;activeButton=null;
+cancelcall()
+   
+      }
+        else{
+      activeButton = btn;
+      callback();}
+    };
+
+    group.appendChild(btn);
+    return btn;
+  }
+
+  return { group, addButton };
+}
