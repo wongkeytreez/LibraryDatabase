@@ -15,7 +15,7 @@ function Start2(isServer, error) {
   });
 
   center.innerHTML = `
-<img src="images/logo.png">
+<img src="images/logo.png" style="max-width:50%">
 <h2>connecting as a: ${isServer ? "library" : "client"}</h2>
 ${error ? "<p style=color:red>" + error + "</p>" : ``}
 <div style="width:80%">

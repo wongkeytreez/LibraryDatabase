@@ -70,7 +70,7 @@ async function AddBook(title, id, genres, desc, cover, authors, password) {
   const data = await res.json();
   return data;
 
-  window.ReloadMain(libname, isserver);
+  window.ReloadMain();
 }
 async function RemoveBook(id, password) {
   const form = new FormData();
@@ -149,8 +149,9 @@ async function Return(bookID, password) {
   });
 
   const data = await res.json();
-  console.log(data);
+
   window.ReloadMain();
+  return data;
 }
 async function GetISBNBook(isbn) {
   const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`;

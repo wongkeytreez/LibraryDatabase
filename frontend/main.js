@@ -519,9 +519,88 @@ function setUpSidebar(isServer) {
             loading.textContent = "book unavailible";
             return;
           }
-          await borrowBook(id);
+          const reply = await borrowBook(id);
+          if (reply.error) {
+            loading.style.color = "red";
+            loading.textContent = reply.error;
+          }
           loading.style.color = "green";
           loading.textContent = "sucsessfully borrowed";
+        });
+      },
+      () => {
+        details.innerHTML = "";
+      }
+    );
+    buttons.addButton(
+      "return book",
+      {},
+      () => {
+        details.innerHTML = "";
+
+        const isbnInput = document.createElement("input");
+        Object.assign(isbnInput.style, {
+          padding: "0.5rem 1rem",
+          fontSize: "1rem",
+          borderRadius: "0.3rem",
+          border: "1px solid #ccc",
+          width: "12rem",
+          display: "block",
+          marginBottom: "1rem",
+        });
+        details.appendChild(isbnInput);
+
+        let timeout;
+
+        isbnInput.addEventListener("input", () => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => {
+            isbnInput.value = "";
+          }, 5000);
+        });
+
+        isbnInput.addEventListener("keydown", async (e) => {
+          if (e.key !== "Enter") return;
+
+          details.innerHTML = "";
+          details.appendChild(isbnInput);
+          const id = isbnInput.value.replace(/\D/g, "");
+          isbnInput.value = "";
+          clearTimeout(timeout);
+
+          const loading = document.createElement("p");
+
+          details.appendChild(loading);
+
+          let book;
+          try {
+            book = await getBook(libname, id);
+          } catch {
+            loading.style.color = "red";
+            loading.textContent = "Error fetching book data.";
+            return;
+          }
+
+          if (!book || book.error) {
+            loading.style.color = "red";
+            loading.textContent = "Error fetching book data.";
+            return;
+          }
+          if (
+            book.history.length == 0 ||
+            book.history[book.history.length - 1].end != null
+          ) {
+            loading.style.color = "red";
+            loading.textContent = "book hasn't been been borrowed yet";
+            return;
+          }
+          const reply = await Return(id);
+          if (reply.error) {
+            loading.style.color = "red";
+            loading.textContent = reply.error;
+          }
+          loading.style.color = "green";
+          loading.textContent = "sucsessfully returned";
           //   loading.remove();
         });
       },
@@ -613,7 +692,7 @@ function setUpSidebar(isServer) {
   sidebar.appendChild(listslist);
 }
 
-async function ReloadMain(libName, isServer) {
+async function ReloadMain(libName = libname, isServer = isserver) {
   main.innerHTML = "";
   const library = await getLibrary(libName);
   console.log(library);
@@ -794,7 +873,7 @@ function Book(pageCenter, contents, libName) {
     padding: "1rem",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "space-between", // vertical spacing
+    justifyContent: "top", // vertical spacing
     alignItems: "center", // centers horizontally
     backgroundColor: "white",
   });
@@ -829,8 +908,8 @@ function Book(pageCenter, contents, libName) {
   };font-size:1rem;margin:0">${
     contents.availible == true ? "Availible" : "Unavailible"
   }</h2>
-<p style="margin:0.3rem;font-size:0.8rem;">Authors:${contents.authors}</p>
-<p style="margin:0;font-size:0.8rem;">Genre:${contents.genres}</p>
+<p style="margin:0.3rem;font-size:0.8rem;">Author:${contents.authors[0]}</p>
+<p style="margin:0;font-size:0.8rem;">Genre:${contents.genres[0]}</p>
 `;
   Object.assign(metadata.style, {
     height: "45%",
@@ -897,14 +976,27 @@ function Book(pageCenter, contents, libName) {
     await sleep(1000);
 
     descBase = document.createElement("div");
-
+    descBase.style.textAlign = "left";
     descBase.style.cssText = base.style.cssText;
     descBase.style.zIndex = "2";
+    descBase.style.overflowY = "auto";
+    descBase.style.overflowX = "hidden";
     main.appendChild(descBase);
     base.style.left = `calc(${pageCenter} - 25rem)`;
     descBase.onclick = async () => {
       hideBook();
     };
+    descBase.innerHTML = `
+  <h4 style="margin:0.5rem;width:90%">${bookData.title}</h4>
+  <p  style="margin:0.3rem;width:90%"><strong>ID:</strong> ${contents.id}</p>
+  <p  style="margin:0.3rem;width:90%"><strong>Authors:</strong>${contents.authors}</p>
+  <p  style="margin:0.3rem;width:90%"><strong>Genres:</strong> ${contents.genres}</p>
+  <p  style="margin:0.5rem;width:90%"><strong>Description:</strong></p>
+  <p  style="margin:0.3rem;width:90%">
+    ${bookData.desc}
+  </p>
+`;
+
     await sleep(1000);
     base.style.transition = ``;
     descBase.style.transition = ``;
@@ -994,7 +1086,7 @@ function Book(pageCenter, contents, libName) {
         hour: "2-digit",
         minute: "2-digit",
       });
-      const returnedStr = returnedTime
+      const returnedStr = history.end
         ? returnedTime.toLocaleString("en-US", {
             weekday: "short",
             year: "numeric",
@@ -1006,7 +1098,7 @@ function Book(pageCenter, contents, libName) {
         : "Not returned yet";
 
       // time difference (in ms)
-      const diff = returnedTime
+      const diff = history.end
         ? returnedTime - borrowedTime
         : Date.now() - borrowedTime;
       const seconds = Math.floor(diff / 1000) % 60;

@@ -37,11 +37,11 @@ function Start1() {
   });
 
   center.innerHTML = `
-<img src="images/logo.png">
+<img src="images/logo.png" style="max-width:50%">
 <p style="font-size:1.2rem;margin:0.5rem;">connect as a:</p>
 <button style="width:80%;padding:0.5rem;margin:0.5rem;border-radius:0.5rem;font-size:1rem;border-width: thin;" onclick="Start2(false)">Client</button>
 <button style="width:80%;padding:0.5rem;margin:0.5rem;border-radius:0.5rem;font-size:1rem;border-width: thin;" onclick="Start2(true)">Library</button>
-<p style="font-size:0.8rem">Dont have a library yet? You can request a library <a href="#https://forms.gle/ZksPSaXnGgM5HmB46" target="_blank">here!</a></p>
+<p style="font-size:0.8rem">Dont have a library yet? You can request a library <a href="https://forms.gle/ZksPSaXnGgM5HmB46" target="_blank">here!</a></p>
 <p style="font-size:0.8rem">Need help? Visit our <a href="https://github.com/wongkeytreez/LibraryDatabase" target="_blank">github</a> for more info!</p>
 `;
 

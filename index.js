@@ -28,7 +28,7 @@ async function runCamera() {
   }, 1000 / fps);
 }
 setInterval(async () => {
-  ReloadMain(libname, isserver);
+  ReloadMain();
   if (isserver) updateCookie();
 }, 60000 * 5);
 
