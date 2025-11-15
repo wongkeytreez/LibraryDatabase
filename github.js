@@ -1,7 +1,7 @@
 const GithubLink =
   "https://api.github.com/repos/wongkeytreez/LibraryDatabase/contents/";
 const GithubToken =
-  "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";
+  "xxxx";
 
 async function uploadFile(path, base64Data, branch = "main") {
   const apiUrl = GithubLink + path;
