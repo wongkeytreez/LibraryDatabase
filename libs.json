@@ -1,0 +1,13 @@
+[
+  {
+    "name": "BMDBLIB",
+    "password": "1234",
+    "Settings": {
+      "ReturnBookRequiresPassword": false,
+      "BorrowBookRequiresPassword": false,
+      "EditBookRequiresPassword": true,
+      "RemoveBookRequiresPassword": true,
+      "AddBookRequiresPassword": true
+    }
+  }
+]
