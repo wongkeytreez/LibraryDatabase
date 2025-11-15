@@ -677,7 +677,7 @@ function setUpSidebar(isServer) {
   listslist.appendChild(icon2);
 
   const icon5 = document.createElement("img");
-  icon5.src = "images/ListOfAllBooks.png";
+  icon5.src = "images/listOfAllBooks.png";
   icon5.onclick = () => {
     document.getElementById("allBooksList").scrollIntoView({
       behavior: "smooth",
