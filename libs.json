@@ -1,6 +1,6 @@
 [
   {
-    "name": "BMDBLIB",
+    "name": "example",
     "password": "1234",
     "Settings": {
       "ReturnBookRequiresPassword": false,
