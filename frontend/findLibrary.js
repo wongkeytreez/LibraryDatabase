@@ -1,5 +1,6 @@
 function Start2(isServer, error) {
   main.innerHTML = "";
+  main.style.pointerEvents = "";
   const center = document.createElement("div");
 
   Object.assign(center.style, {
