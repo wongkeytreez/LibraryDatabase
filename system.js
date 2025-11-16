@@ -86,81 +86,65 @@ function showImage(imageData, container) {
   }
 }
 
-function SmartSearch(SearchString, ListOfResults, presetDistances = {}) {
-  const Distances = {}; // word → DP table
+function SmartSearch(search, list) {
+  search = search.toLowerCase();
+  const qLen = search.length;
 
-  ListOfResults.forEach((word, index) => {
-    word = word.toLowerCase();
-    // skip duplicates
-    if (Distances[word]) return;
+  const distances = {};
 
-    const Q = SearchString.toLowerCase();
-    const maxLen = Q.length;
+  for (const originalWord of list) {
+    const word = originalWord.toLowerCase();
 
-    // make DP table only limited to Q.length × Q.length
-    const dp = Array(maxLen)
-      .fill(0)
-      .map(() => Array(maxLen).fill(0));
-    // if preset exists, use it
-    if (presetDistances[word]) {
-      Distances[word] = presetDistances[word];
-    }
-    // initialize first cell
-    dp[0][0] = Q[0] === word[0] ? 0 : 1;
+    // We want the best match of ANY substring inside the word
+    let best = Infinity;
 
-    // first row
-    for (let y = 1; y < maxLen; y++) {
-      const charWord = word[y] ?? ""; // avoid undefined
-      dp[0][y] = dp[0][y - 1] + (Q[0] === charWord ? 0 : 1);
-    }
+    for (let start = 0; start < word.length; start++) {
+      const slice = word.slice(start, start + qLen);
 
-    // first column
-    for (let x = 1; x < maxLen; x++) {
-      const charWord = word[0] ?? "";
-      dp[x][0] = dp[x - 1][0] + (Q[x] === charWord ? 0 : 1);
-    }
+      // DP table (qLen × qLen)
+      const dp = Array.from({ length: qLen }, () => Array(qLen).fill(0));
 
-    // fill the rest
-    for (let x = 1; x < maxLen; x++) {
-      dp.splice(maxLen, dp.length - maxLen);
-      for (let y = 1; y < maxLen; y++) {
-        dp[x].splice(maxLen, dp[x].length - maxLen);
-        const qc = Q[x];
-        const wc = word[y] ?? ""; // safe if word is shorter
+      // initialize
+      dp[0][0] = search[0] === slice[0] ? 0 : 1;
 
-        const cost = qc === wc ? 0 : 1;
-
-        dp[x][y] = Math.min(
-          dp[x - 1][y] + 1, // deletion
-          dp[x][y - 1] + 1, // insertion
-          dp[x - 1][y - 1] + cost // substitution
-        );
+      // first row
+      for (let y = 1; y < qLen; y++) {
+        dp[0][y] = dp[0][y - 1] + (search[0] === slice[y] ? 0 : 1);
       }
+
+      // first column
+      for (let x = 1; x < qLen; x++) {
+        dp[x][0] = dp[x - 1][0] + (search[x] === slice[0] ? 0 : 1);
+      }
+
+      // fill DP
+      for (let x = 1; x < qLen; x++) {
+        for (let y = 1; y < qLen; y++) {
+          const cost = search[x] === slice[y] ? 0 : 1;
+
+          dp[x][y] = Math.min(
+            dp[x - 1][y] + 1, // deletion
+            dp[x][y - 1] + 1, // insertion
+            dp[x - 1][y - 1] + cost // substitution
+          );
+        }
+      }
+
+      const finalDist = dp[qLen - 1][qLen - 1];
+      if (finalDist < best) best = finalDist; // choose best substring
     }
 
-    Distances[ListOfResults[index]] = dp;
-  });
-
-  // extract final distances
-  const finalDistances = {};
-  for (const word in Distances) {
-    const dp = Distances[word];
-
-    const lastX = dp.length - 1;
-    const lastY = dp[lastX].length - 1;
-
-    finalDistances[word] = dp[lastX][lastY];
+    distances[originalWord] = best;
   }
 
-  // sort by shortest distance
-  const sortedNames = Object.entries(finalDistances)
+  // sort
+  const sorted = Object.entries(distances)
     .sort((a, b) => a[1] - b[1])
     .map((e) => e[0]);
 
   return {
-    map: Distances,
-    distances: finalDistances,
-    sorted: sortedNames,
+    distances,
+    sorted,
   };
 }
 
