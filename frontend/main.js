@@ -85,20 +85,15 @@ function setUpSidebar(isServer) {
     buttonsDiv.appendChild(buttons.group);
     buttonsDiv.appendChild(details);
     buttonsDiv.style.position = "relative";
-    buttons.group.style.position = "absolute";
-    buttons.group.style.top = "40%";
     buttons.group.style.flexWrap = "wrap";
     details.style.width = "100%";
-    details.style.position = "absolute";
-    details.style.top = "50%";
-    details.style.left = "50%";
+
     details.style.height = "40%";
-    details.style.transform = "translate(-50%, 0)";
 
     // --------BUTTONS---------
     buttons.addButton(
       "addbook (ISBN)",
-      {},
+      { maxWidth: "95%" },
       () => {
         details.innerHTML = "";
 
@@ -111,6 +106,7 @@ function setUpSidebar(isServer) {
           width: "12rem",
           display: "block",
           marginBottom: "1rem",
+          maxWidth: "95%",
         });
         details.appendChild(isbnInput);
 
@@ -213,7 +209,7 @@ function setUpSidebar(isServer) {
     );
     buttons.addButton(
       "addbook (manual)",
-      {},
+      { maxWidth: "95%" },
       () => {
         details.innerHTML = "";
 
@@ -459,7 +455,7 @@ function setUpSidebar(isServer) {
     );
     buttons.addButton(
       "borrow book",
-      {},
+      { maxWidth: "95%" },
       () => {
         details.innerHTML = "";
 
@@ -472,6 +468,7 @@ function setUpSidebar(isServer) {
           width: "12rem",
           display: "block",
           marginBottom: "1rem",
+          maxWidth: "95%",
         });
         details.appendChild(isbnInput);
 
@@ -534,7 +531,7 @@ function setUpSidebar(isServer) {
     );
     buttons.addButton(
       "return book",
-      {},
+      { maxWidth: "95%" },
       () => {
         details.innerHTML = "";
 
@@ -547,6 +544,7 @@ function setUpSidebar(isServer) {
           width: "12rem",
           display: "block",
           marginBottom: "1rem",
+          maxWidth: "95%",
         });
         details.appendChild(isbnInput);
 
