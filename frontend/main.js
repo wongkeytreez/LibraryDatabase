@@ -841,15 +841,74 @@ display: inline-block;
     alignItems: "center",
     justifyContent: "center",
   });
-  AllBooks.innerHTML = `<div style="width:100%;display:flex; justify-content:center;"><h1 style="
-display: inline-block;
-  font-family: 'Montserrat', sans-serif;
-  background: white;
-  border: 0.2rem solid rgba(0,0,0,0.2);
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
-  box-sizing: border-box;
-"> List of all books in ${libName}</h1></div>`;
+  AllBooks.innerHTML = `
+<div style="width:100%;display:flex; flex-direction:column; align-items:center; gap:1rem;">
+  <h1 style="
+    display: inline-block;
+    font-family: 'Montserrat', sans-serif;
+    background: white;
+    border: 0.2rem solid rgba(0,0,0,0.2);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    box-sizing: border-box;
+  ">List of all books in ${libName}</h1>
+
+  <input id="BookSearchBar" placeholder="Search..." 
+    style="padding:0.5rem 1rem; width:80%; max-width:400px;
+           border:0.2rem solid rgba(0,0,0,0.2);
+           border-radius:0.4rem; font-size:1rem;">
+</div>
+`;
+  requestAnimationFrame(() => {
+    const searchBar = document.getElementById("BookSearchBar");
+    let SavedDistances = {}; // distance map stays between searches
+
+    searchBar.addEventListener("input", () => {
+      const query = searchBar.value.trim();
+
+      if (query.length === 0) {
+        SavedDistances = {};
+        return;
+      }
+
+      // compute/refresh distances
+      const results = SmartSearch(
+        query,
+        library.books.map((book) => book.title),
+        SavedDistances
+      );
+
+      // update saved distance map
+      SavedDistances = results.map;
+
+      // filter: distance must be <= half the query length
+      const maxDist = Math.floor(query.length / 2) + 1;
+
+      const filtered = results.sorted.filter((name) => {
+        return results.distances[name] <= maxDist;
+      });
+
+      let header = searchBar.parentElement;
+      //remove old books
+      while (AllBooks.children.length > 1) {
+        if (AllBooks.children[0] === header) {
+          AllBooks.removeChild(AllBooks.children[1]);
+        } else {
+          AllBooks.removeChild(AllBooks.children[0]);
+        }
+      }
+
+      //add new books
+      for (const bookTitle of filtered)
+        AllBooks.appendChild(
+          Book(
+            isServer ? "40vw" : "47.5vw",
+            library.books.find((book) => book.title == bookTitle),
+            libName
+          )
+        );
+    });
+  });
   for (const book of library.books)
     AllBooks.appendChild(Book(isServer ? "40vw" : "47.5vw", book, libName));
 
