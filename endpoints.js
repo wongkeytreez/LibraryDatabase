@@ -88,24 +88,30 @@ async function RemoveBook(id, password) {
 }
 
 async function EditBook(id, edits, password) {
-  const form = new FormData();
+  try {
+    const form = new FormData();
 
-  // include cover if it's a file
-  if (edits.cover instanceof File || edits.cover instanceof Blob) {
-    form.append("photo", edits.cover);
+    // include cover if it's a file
+    if (edits.cover instanceof File || edits.cover instanceof Blob) {
+      form.append("photo", edits.cover);
+    }
+
+    form.append("data", JSON.stringify({ id, edits, password }));
+
+    const res = await fetch(ServerAdress + "/EditBook", {
+      method: "POST",
+      credentials: "include",
+      body: form,
+    });
+
+    const data = await res.json();
+    console.log(data);
+    if (data.success) window.ReloadMain();
+    return data;
+  } catch (e) {
+    console.log(e);
+    return { error: e };
   }
-
-  form.append("data", JSON.stringify({ id, edits, password }));
-
-  const res = await fetch(ServerAdress + "/EditBook", {
-    method: "POST",
-    credentials: "include",
-    body: form,
-  });
-
-  const data = await res.json();
-  console.log(data);
-  if (data.success) window.ReloadMain();
 }
 async function EditSettings(newSettings, password) {
   const body = { ...newSettings };

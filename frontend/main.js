@@ -882,7 +882,7 @@ display: inline-block;
       SavedDistances = results.map;
 
       // filter: distance must be <= half the query length
-      const maxDist = Math.floor(query.length / 2) + 1;
+      const maxDist = Math.floor(query.length / 3) + 1;
 
       const filtered = results.sorted.filter((name) => {
         return results.distances[name] <= maxDist;
@@ -933,6 +933,7 @@ function Book(pageCenter, contents, libName) {
     justifyContent: "top", // vertical spacing
     alignItems: "center", // centers horizontally
     backgroundColor: "white",
+    position: "relative",
   });
 
   const img = document.createElement("img");
@@ -976,17 +977,26 @@ function Book(pageCenter, contents, libName) {
     alignItems: "center", // centers horizontally
   });
   base.appendChild(metadata);
-
+  if (isserver)
+    base.innerHTML += ` <img src="images/pencil.png" style="position:absolute;top:10px;right:10px;width:40px;height:40px;background:white;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:20px;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.2);">`;
+  const editButton = base.children[base.children.length - 1];
+  editButton.style.transition = "opacity 1000ms";
   let ghost;
   let descBase;
   let histbase;
+  editButton.onclick = editBook;
   base.onclick = async () => {
     //check whether this book is already in the middle, if position is absolute, its currently in the middle
     if (base.style.position != "absolute") showBook();
     else hideBook();
   };
-
-  async function showBook() {
+  async function editBook(event) {
+    event.stopPropagation();
+    showBook(true);
+  }
+  async function showBook(isEditing) {
+    editButton.onclick = null;
+    editButton.style.opacity = "0";
     const bookData = await getBook(libName, contents.id);
     const histories = bookData.history;
     console.log(bookData);
@@ -1040,20 +1050,67 @@ function Book(pageCenter, contents, libName) {
     descBase.style.overflowX = "hidden";
     main.appendChild(descBase);
     base.style.left = `calc(${pageCenter} - 25rem)`;
-    descBase.onclick = async () => {
-      hideBook();
-    };
-    descBase.innerHTML = `
-  <h4 style="margin:0.5rem;width:90%">${bookData.title}</h4>
-  <p  style="margin:0.3rem;width:90%"><strong>ID:</strong> ${contents.id}</p>
-  <p  style="margin:0.3rem;width:90%"><strong>Authors:</strong>${contents.authors}</p>
-  <p  style="margin:0.3rem;width:90%"><strong>Genres:</strong> ${contents.genres}</p>
-  <p  style="margin:0.5rem;width:90%"><strong>Description:</strong></p>
-  <p  style="margin:0.3rem;width:90%">
-    ${bookData.desc}
-  </p>
-`;
+    if (!isEditing)
+      descBase.onclick = async () => {
+        hideBook();
+      };
 
+    if (!isEditing) {
+      descBase.innerHTML = `
+    <h4 style="margin:0.5rem;width:90%">${bookData.title}</h4>
+    <p style="margin:0.3rem;width:90%"><strong>ID:</strong> ${contents.id}</p>
+    <p style="margin:0.3rem;width:90%"><strong>Authors:</strong> ${contents.authors}</p>
+    <p style="margin:0.3rem;width:90%"><strong>Genres:</strong> ${contents.genres}</p>
+    <p style="margin:0.5rem;width:90%"><strong>Description:</strong></p>
+    <p style="margin:0.3rem;width:90%">${bookData.desc}</p>
+  `;
+    } else {
+      descBase.innerHTML = `
+    <h3 style="margin:0.5rem;width:90%">Edit Book</h3>
+
+    <label>Title</label>
+    <input id="titleinput" type="text" style="width:90%;margin:0.2rem" value="${bookData.title}">
+
+    <p style="margin:0.3rem;width:90%"><strong>ID:</strong> ${contents.id}</p>
+
+    <label>Authors</label>
+    <input id="authorinput" type="text" style="width:90%;margin:0.2rem" value="${contents.authors}">
+
+    <label>Genres</label>
+    <input id="genreinput"type="text" style="width:90%;margin:0.2rem" value="${contents.genres}">
+
+    <label>Description</label>
+    <textarea id="descinput" style="width:90%;margin:0.2rem;flex-shrink:0">${bookData.desc}</textarea>
+    <label>Password</label>
+    <input id="passwordinput" style="width:90%;height;margin:0.2rem"></input>
+    <button id="descbaseSubmit"style="margin:0.5rem;padding:0.4rem 1rem">Save</button>
+  `;
+    }
+    document.getElementById("descbaseSubmit").onclick = () => {
+      const result = EditBook(
+        bookData.id,
+        {
+          title: document.getElementById("titleinput").value,
+          authors: document.getElementById("authorinput").value,
+          genres: document.getElementById("genreinput").value,
+          desc: document.getElementById("descinput").value,
+        },
+        document.getElementById("passwordinput").value
+      );
+      if (result.error) {
+        descBase.innerHTML += "<p>result.error</p>";
+      }
+    };
+    const desc = document.getElementById("descinput");
+    // auto resize on load
+    desc.style.height = "auto";
+    desc.style.height = `calc(${desc.scrollHeight + "px"} - 0.4rem)`;
+
+    // auto resize when typing
+    desc.addEventListener("input", () => {
+      desc.style.height = "auto";
+      desc.style.height = `calc(${desc.scrollHeight + "px"} - 0.4rem)`;
+    });
     await sleep(1000);
     base.style.transition = ``;
     descBase.style.transition = ``;
@@ -1221,6 +1278,8 @@ function Book(pageCenter, contents, libName) {
   }
 
   async function hideBook() {
+    editButton.onclick = editBook;
+    editButton.style.opacity = "1";
     base.style.pointerEvents = "none";
     descBase.style.pointerEvents = "none";
     for (const history of histbase.children) {
@@ -1278,6 +1337,9 @@ function Book(pageCenter, contents, libName) {
     base.parentElement.parentElement.style.pointerEvents = "";
     base.style.pointerEvents = "";
     base.style.zIndex = "";
+    base.style.position = "relative";
+    base.style.top = "0";
+    base.style.left = "0";
   }
 
   return base;
