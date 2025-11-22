@@ -1085,32 +1085,33 @@ function Book(pageCenter, contents, libName) {
     <input id="passwordinput" style="width:90%;height;margin:0.2rem"></input>
     <button id="descbaseSubmit"style="margin:0.5rem;padding:0.4rem 1rem">Save</button>
   `;
-    }
-    document.getElementById("descbaseSubmit").onclick = () => {
-      const result = EditBook(
-        bookData.id,
-        {
-          title: document.getElementById("titleinput").value,
-          authors: document.getElementById("authorinput").value,
-          genres: document.getElementById("genreinput").value,
-          desc: document.getElementById("descinput").value,
-        },
-        document.getElementById("passwordinput").value
-      );
-      if (result.error) {
-        descBase.innerHTML += "<p>result.error</p>";
-      }
-    };
-    const desc = document.getElementById("descinput");
-    // auto resize on load
-    desc.style.height = "auto";
-    desc.style.height = `calc(${desc.scrollHeight + "px"} - 0.4rem)`;
-
-    // auto resize when typing
-    desc.addEventListener("input", () => {
+      document.getElementById("descbaseSubmit").onclick = () => {
+        const result = EditBook(
+          bookData.id,
+          {
+            title: document.getElementById("titleinput").value,
+            authors: document.getElementById("authorinput").value,
+            genres: document.getElementById("genreinput").value,
+            desc: document.getElementById("descinput").value,
+          },
+          document.getElementById("passwordinput").value
+        );
+        if (result.error) {
+          descBase.innerHTML += "<p>result.error</p>";
+        }
+      };
+      const desc = document.getElementById("descinput");
+      // auto resize on load
       desc.style.height = "auto";
       desc.style.height = `calc(${desc.scrollHeight + "px"} - 0.4rem)`;
-    });
+
+      // auto resize when typing
+      desc.addEventListener("input", () => {
+        desc.style.height = "auto";
+        desc.style.height = `calc(${desc.scrollHeight + "px"} - 0.4rem)`;
+      });
+    }
+
     await sleep(1000);
     base.style.transition = ``;
     descBase.style.transition = ``;
@@ -1338,8 +1339,8 @@ function Book(pageCenter, contents, libName) {
     base.style.pointerEvents = "";
     base.style.zIndex = "";
     base.style.position = "relative";
-    base.style.top = "0";
-    base.style.left = "0";
+    base.style.top = null;
+    base.style.left = null;
   }
 
   return base;
