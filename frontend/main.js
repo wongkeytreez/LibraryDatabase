@@ -48,6 +48,7 @@ function setUpSidebar(isServer) {
     borderRight: "0.5rem solid rgba(255,255,255,0.08)",
   });
   const listslist = document.createElement("div");
+  const details = document.createElement("div");
   if (isServer) {
     Object.assign(listslist.style, {
       display: "flex",
@@ -58,6 +59,7 @@ function setUpSidebar(isServer) {
       margin: 0,
       paddingTop: "3rem",
       gap: "2rem",
+      position: "relative",
     });
     const video = document.createElement("div");
     video.style.width = "100%";
@@ -81,7 +83,7 @@ function setUpSidebar(isServer) {
     leftcontainer.style.flexDirection = "column";
     //buton group
     const buttons = createButtonGroup();
-    const details = document.createElement("div");
+
     buttonsDiv.appendChild(buttons.group);
     buttonsDiv.appendChild(details);
     buttonsDiv.style.position = "relative";
@@ -620,6 +622,7 @@ function setUpSidebar(isServer) {
       margin: 0,
       paddingTop: "3rem",
       gap: "2rem",
+      position: "relative",
     });
   }
   const icon3 = document.createElement("img");
@@ -686,7 +689,161 @@ function setUpSidebar(isServer) {
   icon5.classList.add("icon");
   icon5.style.width = "100%";
   listslist.appendChild(icon5);
+  if (isServer) {
+    const icon6 = document.createElement("img");
+    icon6.src = "images/listOfAllBooks.png";
+    icon6.onclick = () => {
+      details.innerHTML = "";
 
+      const BorrowBooksRequiresPassword = document.createElement("div");
+      Object.assign(BorrowBooksRequiresPassword.style, {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "0.7rem",
+        width: "90%",
+        padding: "1rem",
+        backgroundColor: "white",
+        borderRadius: "1rem",
+        border: "1px solid rgba(0,0,0,0.15)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+        margin: "0.5rem",
+      });
+
+      BorrowBooksRequiresPassword.innerHTML = `
+      <p style="margin:0;">Returning books requires a password</p>
+      `;
+
+      const toggleBtn1 = document.createElement("button");
+      Object.assign(toggleBtn1.style, {
+        padding: "0.3rem 0.7rem",
+        borderRadius: "6px",
+        border: "1px solid #aaa",
+        cursor: "pointer",
+      });
+      toggleBtn1.textContent = "OFF";
+
+      toggleBtn1.addEventListener("click", () => {
+        toggleBtn1.textContent =
+          toggleBtn1.textContent === "OFF" ? "ON" : "OFF";
+      });
+
+      BorrowBooksRequiresPassword.append(toggleBtn1);
+      details.appendChild(BorrowBooksRequiresPassword);
+
+      const returnBooksRequiresPassword = document.createElement("div");
+      Object.assign(returnBooksRequiresPassword.style, {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "0.7rem",
+        width: "90%",
+        padding: "1rem",
+        backgroundColor: "white",
+        borderRadius: "1rem",
+        border: "1px solid rgba(0,0,0,0.15)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+        margin: "0.5rem",
+      });
+
+      returnBooksRequiresPassword.innerHTML = `
+      <p style="margin:0;">Returning books requires a password</p>
+      `;
+
+      const toggleBtn2 = document.createElement("button");
+      Object.assign(toggleBtn2.style, {
+        padding: "0.3rem 0.7rem",
+        borderRadius: "6px",
+        border: "1px solid #aaa",
+        cursor: "pointer",
+      });
+      toggleBtn2.textContent = "OFF";
+
+      toggleBtn2.addEventListener("click", () => {
+        toggleBtn2.textContent =
+          toggleBtn2.textContent === "OFF" ? "ON" : "OFF";
+      });
+
+      returnBooksRequiresPassword.append(toggleBtn2);
+      details.appendChild(returnBooksRequiresPassword);
+
+      const addBooksRequiresPassword = document.createElement("div");
+      Object.assign(addBooksRequiresPassword.style, {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "0.7rem",
+        width: "90%",
+        padding: "1rem",
+        backgroundColor: "white",
+        borderRadius: "1rem",
+        border: "1px solid rgba(0,0,0,0.15)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+        margin: "0.5rem",
+      });
+
+      addBooksRequiresPassword.innerHTML = `
+      <p style="margin:0;">Returning books requires a password</p>
+      `;
+
+      const toggleBtn3 = document.createElement("button");
+      Object.assign(toggleBtn3.style, {
+        padding: "0.3rem 0.7rem",
+        borderRadius: "6px",
+        border: "1px solid #aaa",
+        cursor: "pointer",
+      });
+      toggleBtn3.textContent = "OFF";
+
+      toggleBtn3.addEventListener("click", () => {
+        toggleBtn3.textContent =
+          toggleBtn3.textContent === "OFF" ? "ON" : "OFF";
+      });
+
+      addBooksRequiresPassword.append(toggleBtn3);
+      details.appendChild(addBooksRequiresPassword);
+
+      const removeBooksRequiresPassword = document.createElement("div");
+      Object.assign(removeBooksRequiresPassword.style, {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "0.7rem",
+        width: "90%",
+        padding: "1rem",
+        backgroundColor: "white",
+        borderRadius: "1rem",
+        border: "1px solid rgba(0,0,0,0.15)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+        margin: "0.5rem",
+      });
+
+      removeBooksRequiresPassword.innerHTML = `
+      <p style="margin:0;">Returning books requires a password</p>
+      `;
+
+      const toggleBtn4 = document.createElement("button");
+      Object.assign(toggleBtn4.style, {
+        padding: "0.3rem 0.7rem",
+        borderRadius: "6px",
+        border: "1px solid #aaa",
+        cursor: "pointer",
+      });
+      toggleBtn4.textContent = "OFF";
+
+      toggleBtn4.addEventListener("click", () => {
+        toggleBtn4.textContent =
+          toggleBtn4.textContent === "OFF" ? "ON" : "OFF";
+      });
+
+      removeBooksRequiresPassword.append(toggleBtn4);
+      details.appendChild(removeBooksRequiresPassword);
+    };
+    icon6.classList.add("icon");
+    Object.assign(icon6.style, {
+      width: "100%",
+      position: "absolute",
+      bottom: "2%",
+      transform: "translateY(-50%)",
+    });
+    listslist.appendChild(icon6);
+  }
   sidebar.appendChild(listslist);
 }
 
@@ -979,12 +1136,13 @@ function Book(pageCenter, contents, libName) {
   base.appendChild(metadata);
   if (isserver)
     base.innerHTML += ` <img src="images/pencil.png" style="position:absolute;top:10px;right:10px;width:40px;height:40px;background:white;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:20px;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.2);">`;
-  const editButton = base.children[base.children.length - 1];
-  editButton.style.transition = "opacity 1000ms";
+  const editButton = isserver ? base.children[base.children.length - 1] : null;
+  if (isserver) editButton.style.transition = "opacity 1000ms";
+  if (isserver) editButton.onclick = editBook;
   let ghost;
   let descBase;
   let histbase;
-  editButton.onclick = editBook;
+
   base.onclick = async () => {
     //check whether this book is already in the middle, if position is absolute, its currently in the middle
     if (base.style.position != "absolute") showBook();
@@ -994,9 +1152,9 @@ function Book(pageCenter, contents, libName) {
     event.stopPropagation();
     showBook(true);
   }
-  async function showBook(isEditing) {
-    editButton.onclick = null;
-    editButton.style.opacity = "0";
+  async function showBook(isEditing = false) {
+    if (isserver) editButton.onclick = null;
+    if (isserver) editButton.style.opacity = "0";
     const bookData = await getBook(libName, contents.id);
     const histories = bookData.history;
     console.log(bookData);
@@ -1279,8 +1437,8 @@ function Book(pageCenter, contents, libName) {
   }
 
   async function hideBook() {
-    editButton.onclick = editBook;
-    editButton.style.opacity = "1";
+    if (isserver) editButton.onclick = editBook;
+    if (isserver) editButton.style.opacity = "1";
     base.style.pointerEvents = "none";
     descBase.style.pointerEvents = "none";
     for (const history of histbase.children) {
