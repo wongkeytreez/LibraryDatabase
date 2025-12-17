@@ -170,16 +170,25 @@ async function GetISBNBook(isbn) {
     if (!data.items || data.items.length === 0) {
       throw new Error("Book not found");
     }
+
     const fullData = data.items[0].volumeInfo;
-    console.log(fullData);
-    // Return the raw book object from Google Books
+
+    let cover;
+    if (fullData.imageLinks?.thumbnail) {
+      cover = fullData.imageLinks.thumbnail;
+    } else {
+      // fetch local image and turn it into a blob URL
+      const imgRes = await fetch("images/NoThumbnail.jpeg");
+      cover = await imgRes.blob();
+    }
+
     return {
       title: fullData.title,
       id: isbn,
-      genres: fullData.categories,
-      desc: fullData.description,
-      cover: fullData.imageLinks.thumbnail,
-      authors: fullData.authors,
+      genres: fullData.categories ?? [],
+      desc: fullData.description ?? "",
+      cover,
+      authors: fullData.authors ?? [],
     };
   } catch (err) {
     console.error("Error fetching book details:", err.message);

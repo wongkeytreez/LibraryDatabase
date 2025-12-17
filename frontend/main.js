@@ -137,11 +137,15 @@ function setUpSidebar(isServer) {
           try {
             book = await GetISBNBook(isbnInput.value);
           } catch {
+            isbnInput.focus();
+            isbnInput.value = "";
             loading.textContent = "Error fetching book data.";
             return;
           }
 
           if (!book || book.error) {
+            isbnInput.focus();
+            isbnInput.value = "";
             loading.style.color = "red";
             loading.textContent = "Book not found or invalid ISBN.";
             return;
@@ -160,9 +164,13 @@ function setUpSidebar(isServer) {
             background: "#f9f9f9",
             marginBottom: "1rem",
           });
-
+          console.log(book.cover);
           bookinfo.innerHTML = `
-            <img src="${book.cover}" style="width:5rem;height:auto;border-radius:0.3rem;">
+            <img src="${
+              typeof book.cover == "string"
+                ? book.cover
+                : URL.createObjectURL(book.cover)
+            }" style="width:5rem;height:auto;border-radius:0.3rem;">
             <div>
                 <h3 style="margin:0;font-size:1.1rem;">${book.title}</h3>
                 <p style="margin:0.2rem 0 0;color:#555;">${book.authors}</p>
@@ -193,12 +201,21 @@ function setUpSidebar(isServer) {
                 book.cover,
                 book.authors
               );
-              if (data.error) return (confirmButton.textContent = data.error);
+              if (data.error) {
+                isbnInput.value = "";
+                isbnInput.focus();
+                confirmButton.textContent = data.error;
+                return;
+              }
               confirmButton.textContent = "Added!";
+              isbnInput.value = "";
+              isbnInput.focus();
             } catch (e) {
               console.log(e);
               confirmButton.textContent = "Failed. Try again.";
               confirmButton.disabled = false;
+              isbnInput.value = "";
+              isbnInput.focus();
             }
           };
 
@@ -519,7 +536,7 @@ function setUpSidebar(isServer) {
             return;
           }
           const reply = await borrowBook(id);
-          if (reply.error) {
+          if (reply.error != null) {
             loading.style.color = "red";
             loading.textContent = reply.error;
           }
@@ -638,19 +655,6 @@ function setUpSidebar(isServer) {
   icon3.style.width = "100%";
   listslist.appendChild(icon3);
 
-  const icon4 = document.createElement("img");
-  icon4.src = "images/MostPopularISBN.png";
-  icon4.onclick = () => {
-    document.getElementById("MostPopularISBNList").scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      inline: "start",
-    });
-  };
-  icon4.classList.add("icon");
-  icon4.style.width = "100%";
-  listslist.appendChild(icon4);
-
   const icon1 = document.createElement("img");
   icon1.src = "images/HighestRated.png";
   icon1.onclick = () => {
@@ -663,19 +667,6 @@ function setUpSidebar(isServer) {
   icon1.classList.add("icon");
   icon1.style.width = "100%";
   listslist.appendChild(icon1);
-
-  const icon2 = document.createElement("img");
-  icon2.src = "images/HighestRatedISBN.png";
-  icon2.onclick = () => {
-    document.getElementById("HighestRatedISBNList").scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      inline: "start",
-    });
-  };
-  icon2.classList.add("icon");
-  icon2.style.width = "100%";
-  listslist.appendChild(icon2);
 
   const icon5 = document.createElement("img");
   icon5.src = "images/listOfAllBooks.png";
@@ -892,37 +883,6 @@ display: inline-block;
       )
     );
 
-  //most popular isbn books
-  const MostPopularISBN = document.createElement("div");
-  MostPopularISBN.id = "MostPopularISBNList";
-  Object.assign(MostPopularISBN.style, {
-    width: "calc(100% - 4rem)",
-
-    padding: "2rem",
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "3rem",
-    alignItems: "center",
-    justifyContent: "center",
-  });
-  MostPopularISBN.innerHTML = `<div style="width:100%;display:flex; justify-content:center;"><h1 style="
-display: inline-block;
-  font-family: 'Montserrat', sans-serif;
-  background: white;
-  border: 0.2rem solid rgba(0,0,0,0.2);
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
-  box-sizing: border-box;
-">List of the most popular ISBN books in ${libName}</h1></div>`;
-  for (const book of library.mostPopularISBN)
-    MostPopularISBN.appendChild(
-      Book(
-        isServer ? "40vw" : "47.5vw",
-        library.books.find((b) => b.id == book),
-        libName
-      )
-    );
-
   //highest rated books
   const HighestRated = document.createElement("div");
   HighestRated.id = "HighestRatedList";
@@ -947,37 +907,6 @@ display: inline-block;
 "> List of the highest rated books in ${libName}</h1></div>`;
   for (const book of library.highestRatedBooks || [])
     HighestRated.appendChild(
-      Book(
-        isServer ? "40vw" : "47.5vw",
-        library.books.find((b) => b.id == book),
-        libName
-      )
-    );
-
-  //highest rated isbn books
-  const HighestRatedISBN = document.createElement("div");
-  HighestRatedISBN.id = "HighestRatedISBNList";
-  Object.assign(HighestRatedISBN.style, {
-    width: "calc(100% - 4rem)",
-
-    padding: "2rem",
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "3rem",
-    alignItems: "center",
-    justifyContent: "center",
-  });
-  HighestRatedISBN.innerHTML = ` <div style="width:100%;display:flex; justify-content:center;"><h1 style="
-display: inline-block;
-  font-family: 'Montserrat', sans-serif;
-  background: white;
-  border: 0.2rem solid rgba(0,0,0,0.2);
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
-  box-sizing: border-box;
-"> List of the highest rated ISBN books in ${libName}</h1></div>`;
-  for (const book of library.highestRatedBooksISBN)
-    HighestRatedISBN.appendChild(
       Book(
         isServer ? "40vw" : "47.5vw",
         library.books.find((b) => b.id == book),
@@ -1070,9 +999,9 @@ display: inline-block;
     AllBooks.appendChild(Book(isServer ? "40vw" : "47.5vw", book, libName));
 
   bookLists.appendChild(MostPopular);
-  bookLists.appendChild(MostPopularISBN);
+
   bookLists.appendChild(HighestRated);
-  bookLists.appendChild(HighestRatedISBN);
+
   bookLists.appendChild(AllBooks);
   main.appendChild(bookLists);
 }
@@ -1142,7 +1071,7 @@ function Book(pageCenter, contents, libName) {
   let ghost;
   let descBase;
   let histbase;
-
+  let pdfbase;
   base.onclick = async () => {
     //check whether this book is already in the middle, if position is absolute, its currently in the middle
     if (base.style.position != "absolute") showBook();
@@ -1156,6 +1085,7 @@ function Book(pageCenter, contents, libName) {
     if (isserver) editButton.onclick = null;
     if (isserver) editButton.style.opacity = "0";
     const bookData = await getBook(libName, contents.id);
+    if (!isserver) bookData.history = [];
     const histories = bookData.history;
     console.log(bookData);
     ghost = document.createElement("div");
@@ -1206,8 +1136,20 @@ function Book(pageCenter, contents, libName) {
     descBase.style.zIndex = "2";
     descBase.style.overflowY = "auto";
     descBase.style.overflowX = "hidden";
+
     main.appendChild(descBase);
+    pdfbase = document.createElement("div");
+    pdfbase.style.textAlign = "left";
+    pdfbase.style.cssText = base.style.cssText;
+    pdfbase.style.zIndex = "2";
+    pdfbase.style.overflowY = "auto";
+    pdfbase.style.overflowX = "hidden";
+    main.appendChild(pdfbase);
+
     base.style.left = `calc(${pageCenter} - 25rem)`;
+    requestAnimationFrame(() => {
+      pdfbase.style.left = `calc(${pageCenter} + 10rem)`;
+    });
     if (!isEditing)
       descBase.onclick = async () => {
         hideBook();
@@ -1221,7 +1163,209 @@ function Book(pageCenter, contents, libName) {
     <p style="margin:0.3rem;width:90%"><strong>Genres:</strong> ${contents.genres}</p>
     <p style="margin:0.5rem;width:90%"><strong>Description:</strong></p>
     <p style="margin:0.3rem;width:90%">${bookData.desc}</p>
+    
   `;
+      // set contents of the pdf base
+      //       pdfbase.innerHTML = `
+      //   <h1 style="margin:0.5rem">Ebook link:</h1>
+      //   ${
+      //     contents.EbookLink != null
+      //       ? `<a
+      //   href="${contents.EbookLink}"
+      //   target="_blank"
+      //   style="
+      //     display: -webkit-box;
+      //     max-width: 80%;
+      //     -webkit-line-clamp: 2;
+      //     -webkit-box-orient: vertical;
+      //     overflow: hidden;
+      //     word-break: break-word;
+      //   "
+      // >
+      //   ${contents.EbookLink}
+      // </a>
+      //   </a>`
+      //       : `<p>
+      //  no Ebook yet
+      //   </p>`
+      //   }
+      // `;
+
+      //       function showEbookBox() {
+      //         const linkbox = document.createElement("div");
+
+      //         linkbox.textContent =
+      //           contents.EbookLink != null ? "open Ebook" : "no ebook availible";
+      //         linkbox.style.width = `calc(${pdfbase.style.width} - 1rem)`;
+      //         linkbox.style.height = `calc(${pdfbase.style.height}/3)`;
+      //         linkbox.style.background = "#222";
+      //         linkbox.style.color = "white";
+      //         linkbox.style.display = "flex";
+      //         linkbox.style.alignItems = "center";
+      //         linkbox.style.justifyContent = "center";
+      //         linkbox.style.cursor = "pointer";
+      //         linkbox.style.marginTop = "4rem";
+      //         linkbox.style.borderRadius = "10px";
+
+      //         linkbox.onmouseenter = () => {
+      //           linkbox.style.opacity = "0.8";
+      //         };
+      //         linkbox.onmouseleave = () => {
+      //           linkbox.style.opacity = "1";
+      //         };
+      //         linkbox.onclick = () => {
+      //           if (contents.EbookLink != null)
+      //             window.open(contents.EbookLink, "_blank");
+      //         };
+
+      //         pdfbase.appendChild(linkbox);
+      //       }
+      //       showEbookBox();
+      let ebookBlob = null;
+      function showEditBox() {
+        if (ebookBlob == null) {
+          pdfbase.innerHTML = `
+  <h1 style="margin:0.5rem">Ebook link:</h1>
+  ${
+    contents.EbookLink != null
+      ? `<a
+  href="${contents.EbookLink}"
+  target="_blank"
+  style="
+    display: -webkit-box;
+    max-width: 80%;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+  "
+>
+  ${contents.EbookLink}
+</a>
+  </a>`
+      : `<p>
+ no Ebook yet
+  </p>`
+  }
+`;
+        } else {
+          pdfbase.innerHTML = `<p>
+ebook saved
+  </p>`;
+        }
+
+        const editBox = document.createElement("div");
+
+        editBox.textContent = "edit book";
+        editBox.style.width = `calc(${pdfbase.style.width} - 1rem)`;
+        editBox.style.height = `calc(${pdfbase.style.height}/3)`;
+        editBox.style.background = "#222";
+        editBox.style.color = "white";
+        editBox.style.display = "flex";
+        editBox.style.alignItems = "center";
+        editBox.style.justifyContent = "center";
+        editBox.style.cursor = "pointer";
+        editBox.style.marginTop = "4rem";
+        editBox.style.borderRadius = "10px";
+
+        editBox.onmouseenter = () => {
+          editBox.style.opacity = "0.8";
+        };
+        editBox.onmouseleave = () => {
+          editBox.style.opacity = "1";
+        };
+        editBox.onclick = () => {
+          showTwooptions();
+        };
+
+        pdfbase.appendChild(editBox);
+      }
+      function showTwooptions() {
+        pdfbase.innerHTML = "";
+        const filebox = document.createElement("div");
+
+        filebox.textContent = "upload PDF / EPUB";
+        filebox.style.width = `calc(${pdfbase.style.width} - 1rem)`;
+        filebox.style.height = `calc(${pdfbase.style.height}/2 - 0.8rem)`;
+        filebox.style.background = "#222";
+        filebox.style.color = "white";
+        filebox.style.display = "flex";
+        filebox.style.alignItems = "center";
+        filebox.style.justifyContent = "center";
+        filebox.style.cursor = "pointer";
+        filebox.style.margin = "0.4rem";
+        filebox.style.borderRadius = "10px";
+
+        filebox.onmouseenter = () => {
+          filebox.style.opacity = "0.8";
+        };
+        filebox.onmouseleave = () => {
+          filebox.style.opacity = "1";
+        };
+        filebox.onclick = () => {
+          const input = document.createElement("input");
+          input.type = "file";
+          input.accept = ".pdf,.epub"; // Only PDF or EPUB
+          input.style.display = "none";
+
+          // 2️⃣ Listen for file selection
+          input.addEventListener("change", async (event) => {
+            const file = event.target.files[0];
+            if (!file) return; // user canceled
+
+            // Optional: quick MIME/type check
+            const allowedTypes = ["application/pdf", "application/epub+zip"];
+            if (
+              !allowedTypes.includes(file.type) &&
+              !file.name.endsWith(".epub")
+            ) {
+              alert("Please select a PDF or EPUB file!");
+              return;
+            }
+            ebookBlob = file;
+            showEditBox();
+          });
+
+          // 3️⃣ Trigger the file picker
+          document.body.appendChild(input);
+          input.click();
+          document.body.removeChild(input); // cleanup
+        };
+        const linkbox = document.createElement("div");
+
+        linkbox.textContent = "upload link";
+        linkbox.style.width = `calc(${pdfbase.style.width} - 1rem)`;
+        linkbox.style.height = `calc(${pdfbase.style.height}/2 - 0.8rem)`;
+        linkbox.style.background = "#222";
+        linkbox.style.color = "white";
+        linkbox.style.display = "flex";
+        linkbox.style.alignItems = "center";
+        linkbox.style.justifyContent = "center";
+        linkbox.style.cursor = "pointer";
+        filebox.style.margin = "0.4rem";
+        linkbox.style.borderRadius = "10px";
+
+        linkbox.onmouseenter = () => {
+          linkbox.style.opacity = "0.8";
+        };
+        linkbox.onmouseleave = () => {
+          linkbox.style.opacity = "1";
+        };
+        linkbox.onclick = async () => {
+          const text = prompt("ebook link:");
+          if (text != null) {
+            const data = await fetchEbookBlob(text);
+            if (data.error != null) {
+              return alert(data.error);
+            }
+            ebookBlob = data;
+            showEditBox();
+          }
+        };
+        pdfbase.appendChild(filebox);
+        pdfbase.appendChild(linkbox);
+      }
+      showEditBox();
     } else {
       descBase.innerHTML = `
     <h3 style="margin:0.5rem;width:90%">Edit Book</h3>
@@ -1248,8 +1392,8 @@ function Book(pageCenter, contents, libName) {
           bookData.id,
           {
             title: document.getElementById("titleinput").value,
-            authors: document.getElementById("authorinput").value,
-            genres: document.getElementById("genreinput").value,
+            authors: document.getElementById("authorinput").value.split(","),
+            genres: document.getElementById("genreinput").value.split(","),
             desc: document.getElementById("descinput").value,
           },
           document.getElementById("passwordinput").value
@@ -1268,12 +1412,40 @@ function Book(pageCenter, contents, libName) {
         desc.style.height = "auto";
         desc.style.height = `calc(${desc.scrollHeight + "px"} - 0.4rem)`;
       });
+      // set contents of the pdf base
+      const box1 = document.createElement("div");
+
+      box1.textContent =
+        contents.EbookLink != null ? "open Ebook" : "no ebook availible";
+      box1.style.width = `calc(${pdfbase.style.width} - 1rem)`;
+      box1.style.height = `calc(${pdfbase.style.height} - 0.8rem)`;
+      box1.style.background = "#222";
+      box1.style.color = "white";
+      box1.style.display = "flex";
+      box1.style.alignItems = "center";
+      box1.style.justifyContent = "center";
+      box1.style.cursor = "pointer";
+      box1.style.borderRadius = "10px";
+
+      box1.onmouseenter = () => {
+        box1.style.opacity = "0.8";
+      };
+      box1.onmouseleave = () => {
+        box1.style.opacity = "1";
+      };
+      box1.onclick = () => {
+        if (contents.EbookLink != null)
+          window.open(contents.EbookLink, "_blank");
+      };
+
+      pdfbase.appendChild(box1);
     }
 
     await sleep(1000);
     base.style.transition = ``;
     descBase.style.transition = ``;
-
+    pdfbase.style.transition = "";
+    pdfbase.style.pointerEvents = "";
     histbase = document.createElement("div");
     main.appendChild(histbase);
     Object.assign(histbase.style, {
@@ -1476,10 +1648,13 @@ function Book(pageCenter, contents, libName) {
     await sleep(1000 - 1000 / histbase.children.length);
     base.style.transition = `left ${1000}ms ease, top ${1000}ms ease`;
     base.style.left = "calc(" + pageCenter + " - " + "7.5rem)";
-
+    pdfbase.style.transition = `left ${1000}ms ease, top ${1000}ms ease`;
+    pdfbase.style.left = "calc(" + pageCenter + " - " + "7.5rem)";
     await sleep(1000);
     histbase.remove();
     histbase = "";
+    pdfbase.remove();
+    pdfbase = "";
     descBase.remove();
     descBase = "";
     console.log(ghost.offsetLeft);
@@ -1729,4 +1904,85 @@ function dataURLToBlob(dataURL) {
   const array = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
   return new Blob([array], { type: mime });
+}
+async function fetchEbookBlob(url) {
+  // 0️⃣ Sanity check
+  try {
+    new URL(url);
+  } catch {
+    return { error: "Invalid URL" };
+  }
+
+  const lowerUrl = url.toLowerCase();
+
+  // 1️⃣ Quick extension hint
+  if (!lowerUrl.endsWith(".pdf") && !lowerUrl.endsWith(".epub")) {
+    return {
+      error:
+        "Link does not appear to be a PDF or EPUB. " +
+        "(A typical PDF/EPUB link ends with .pdf or .epub)",
+    };
+  }
+
+  // 2️⃣ HEAD request to check existence + MIME type
+  let headRes;
+  try {
+    headRes = await fetch(url, { method: "HEAD" });
+  } catch (err) {
+    return {
+      error:
+        err instanceof TypeError
+          ? "Blocked by CORS or network error"
+          : "Request failed",
+    };
+  }
+
+  if (!headRes.ok) {
+    return { error: `Link does not exist (HTTP ${headRes.status})` };
+  }
+
+  const type = headRes.headers.get("content-type") || "";
+
+  // 3️⃣ If content-type is valid, fetch full file
+  if (
+    type.includes("application/pdf") ||
+    type.includes("application/epub+zip")
+  ) {
+    try {
+      const blob = await fetch(url).then((r) => r.blob());
+      return {
+        success: true,
+        type: type.includes("pdf") ? "pdf" : "epub",
+        blob,
+      };
+    } catch {
+      return { error: "Failed to fetch file content" };
+    }
+  }
+
+  // 4️⃣ Byte-sniff fallback
+  try {
+    const rangeRes = await fetch(url, { headers: { Range: "bytes=0-4" } });
+    if (!rangeRes.ok) return { error: "Unable to read file contents" };
+
+    const buf = await rangeRes.arrayBuffer();
+    const header = new TextDecoder().decode(buf);
+
+    let fileType = null;
+    if (header.startsWith("%PDF")) fileType = "pdf";
+    else if (header.startsWith("PK")) fileType = "epub"; // EPUB is ZIP-based
+
+    if (fileType) {
+      const blob = await fetch(url).then((r) => r.blob());
+      return { success: true, type: fileType, blob };
+    }
+
+    return {
+      error:
+        "Link is not a raw PDF or EPUB file. " +
+        "(A typical PDF/EPUB link ends with .pdf or .epub)",
+    };
+  } catch {
+    return { error: "Blocked by CORS during content check" };
+  }
 }
